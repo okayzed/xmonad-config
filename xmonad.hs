@@ -41,6 +41,7 @@ import XMonad.Prompt.Workspace
 import XMonad.Prompt.XMonad
 
 import XMonad.Util.EZConfig
+import XMonad.Util.Run
 import XMonad.Util.Replace
 import XMonad.Util.Themes
 
@@ -86,9 +87,9 @@ myTopicConfig = defaultTopicConfig
                        spawnShellIn "wd")
       , ("mail",       mailAction)
       , ("irc",        spawnShell)
+      , ("term",       spawnShell)
       , ("vim",        spawnVimIn "wd")
       , ("todo",       spawnVimIn "wd")
-      , ("dashboard",  spawnShell)
       , ("web",        browserCmd)
       ]
   }
@@ -102,10 +103,10 @@ browserCmd = spawn $ "xdg-open http://google.com"
 myShell = "bash"
 
 spawnShellIn :: Dir -> X ()
-spawnShellIn dir = spawn $ "urxvt '(cd ''" ++ dir ++ "'' && " ++ myShell ++ " )'"
+spawnShellIn dir = spawn $ "gnome-terminal -e '(cd ''" ++ dir ++ "'' && " ++ myShell ++ " )'"
 
 spawnVimIn :: Dir -> X ()
-spawnVimIn dir = spawn $ "urxvt '(cd ''" ++ dir ++ "'' && " ++ myShell ++ " && vim)'"
+spawnVimIn dir = spawn $ "gnome-terminal -e '(cd ''" ++ dir ++ "'' && " ++ myShell ++ " )'"
 
 goto :: Topic -> X ()
 goto = switchTopic myTopicConfig
@@ -134,7 +135,7 @@ bluetileLayoutHook = avoidStruts $ minimize $ boringWindows $ (
     fullscreen = maximize $ smartBorders Full
 
 myStartup = do
-  spawn "bash ~/.xinitrc"
+  spawn "bash ~/.xinitrc &"
 
 myConfig = bluetileConfig
   { borderWidth = 2
@@ -146,7 +147,9 @@ myConfig = bluetileConfig
     , startupHook = ewmhDesktopsStartup <+> myStartup
     , workspaces = myTopics } 
   `additionalKeys` [
-    ((mod4Mask, xK_p),    spawn "dmenu_run -b -nb black -nf white") --call dmenu
+    ((controlMask, xK_space),    spawn "DMENU_OPTIONS='-b -nb black -nf white' dmenu-launch") 
+  , ((mod4Mask .|. shiftMask, xK_p),    spawn "dmenu_run -b -nb black -nf white") 
+    --call dmenu
   , ((mod4Mask, xK_o), moveTo Prev NonEmptyWS)
   , ((mod4Mask, xK_i), moveTo Next NonEmptyWS)
   , ((mod4Mask, xK_space), dwmpromote)
