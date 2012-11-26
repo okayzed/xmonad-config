@@ -4,6 +4,7 @@ import XMonad.Actions.CycleWS
 import XMonad.Actions.DwmPromote
 import XMonad.Actions.TopicSpace
 
+
 import XMonad.Config.Bluetile
 import XMonad.Config.Gnome
 
@@ -35,6 +36,7 @@ import XMonad.Layout.PositionStoreFloat
 import XMonad.Layout.WindowSwitcherDecoration
 
 import XMonad.Prompt
+import XMonad.Prompt.AppendFile
 import XMonad.Prompt.Shell
 import XMonad.Prompt.Window
 import XMonad.Prompt.Workspace
@@ -52,6 +54,7 @@ import qualified Data.Map as M
 
 myManageHook = composeAll [
   resource =? "desktop_window" --> doIgnore
+  , className =? "Guake.py" --> doFloat
   , className =? "synapse" --> doIgnore
   , className =? "Chromium-browser" --> doShift "web"
   , className =? "Google-chrome" --> doShift "web"
@@ -169,6 +172,8 @@ myConfig = bluetileConfig
   , ((mod4Mask .|. shiftMask, xK_n     ), windowPromptBring defaultXPConfig)
   , ((mod4Mask              , xK_g     ), promptedGoto)
   , ((mod4Mask .|. shiftMask, xK_g     ), promptedShift)
+  , ((mod4Mask, xK_t), appendFilePrompt defaultXPConfig "/home/okay/TODO")
+
   ]
 
 main = xmonad =<< xmobar myConfig
