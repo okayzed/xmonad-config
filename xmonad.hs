@@ -53,6 +53,8 @@ import qualified Data.Map as M
 myManageHook = composeAll [
   resource =? "desktop_window" --> doIgnore
   , className =? "synapse" --> doIgnore
+  , className =? "Chromium-browser" --> doShift "web"
+  , className =? "Google-chrome" --> doShift "web"
   ]
 myDragger = BordersDragger
 
@@ -66,7 +68,10 @@ myTopics =
   , "music"
   , "chrome"
   , "mail"
+  , "terminal"
   , "vim"
+  , "ssh"
+  , "conf"
   , "todo"
   , "top"
   ]
@@ -74,22 +79,26 @@ myTopics =
 myTopicConfig :: TopicConfig
 myTopicConfig = defaultTopicConfig
   { topicDirs = M.fromList $
-      [ ("conf", "w/conf")
+      [ ("conf", ".xmonad/")
       , ("music", "Music")
-      , ("terminal", "w/tonka/src")
+      , ("wiki", "wiki")
+      , ("terminal", "tonka/src")
       ]
   , defaultTopicAction = const $ spawnShell >*> 3
   , defaultTopic = "dashboard"
   , topicActions = M.fromList $
-      [ ("conf",       spawnShell >> spawnShellIn ".xmonad")
-      , ("terminal",   spawnShellIn "wd" >>
-                       spawnShellIn "wd" >>
-                       spawnShellIn "wd")
+      [ ("conf",       spawnApp "vim .xmonad/xmonad.hs" >>
+                       spawnShell)
+      , ("top",        spawnApp "top" >>
+                       spawnApp "iftop -i wlan1" >>
+                       spawnApp "iftop -i eth1")
+      , ("terminal",   spawnShellIn "~/" >>
+                       spawnShellIn "~/" >>
+                       spawnShellIn "~/")
       , ("mail",       mailAction)
-      , ("irc",        spawnShell)
-      , ("term",       spawnShell)
-      , ("vim",        spawnVimIn "wd")
-      , ("todo",       spawnVimIn "wd")
+      , ("ssh",        spawnShell)
+      , ("vim",        spawnVimIn "~/")
+      , ("todo",       spawnApp "vim TODO")
       , ("web",        browserCmd)
       ]
   }
@@ -103,10 +112,13 @@ browserCmd = spawn $ "xdg-open http://google.com"
 myShell = "bash"
 
 spawnShellIn :: Dir -> X ()
-spawnShellIn dir = spawn $ "gnome-terminal -e '(cd ''" ++ dir ++ "'' && " ++ myShell ++ " )'"
+spawnShellIn dir = spawn $ "gnome-terminal --working-directory=" ++ dir ++ " -e '" ++ myShell ++ "'"
+
+spawnApp :: String -> X ()
+spawnApp app = spawn $ "gnome-terminal -e '" ++ app ++ "'"
 
 spawnVimIn :: Dir -> X ()
-spawnVimIn dir = spawn $ "gnome-terminal -e '(cd ''" ++ dir ++ "'' && " ++ myShell ++ " )'"
+spawnVimIn dir = spawn $ "gnome-terminal --working-directory=" ++ dir ++ " -e vim"
 
 goto :: Topic -> X ()
 goto = switchTopic myTopicConfig
@@ -145,10 +157,10 @@ myConfig = bluetileConfig
     , focusFollowsMouse  = True
     , layoutHook = bluetileLayoutHook
     , startupHook = ewmhDesktopsStartup <+> myStartup
-    , workspaces = myTopics } 
+    , workspaces = myTopics }
   `additionalKeys` [
-    ((controlMask, xK_space),    spawn "DMENU_OPTIONS='-b -nb black -nf white' dmenu-launch") 
-  , ((mod4Mask .|. shiftMask, xK_p),    spawn "dmenu_run -b -nb black -nf white") 
+    ((controlMask, xK_space),    spawn "DMENU_OPTIONS='-b -nb black -nf white' dmenu-launch")
+  , ((mod4Mask .|. shiftMask, xK_p),    spawn "dmenu_run -b -nb black -nf white")
     --call dmenu
   , ((mod4Mask, xK_o), moveTo Prev NonEmptyWS)
   , ((mod4Mask, xK_i), moveTo Next NonEmptyWS)
