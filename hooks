@@ -15,6 +15,8 @@ if [[ $1 == "startup" ]]; then
   xmobar &
 
   killall trayer
+
+  # Add --monitor 1 or 0 to change where it appears
   trayer --edge top --align right --SetDockType true --SetPartialStrut true  --width 10 --transparent true --tint 0x000000 --height 24 &
 
   gnome-settings-daemon &
