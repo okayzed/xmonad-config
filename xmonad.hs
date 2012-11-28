@@ -3,6 +3,8 @@ import XMonad hiding ( (|||) )
 import XMonad.Actions.CycleWS
 import XMonad.Actions.DwmPromote
 import XMonad.Actions.TopicSpace
+import XMonad.Actions.Commands
+
 
 
 import XMonad.Config.Bluetile
@@ -81,8 +83,8 @@ myTopics =
   , "terminal"
   , "vim"
   , "ssh"
+  , "vpn"
   , "conf"
-  , "top"
   , "chrome"
   ]
 
@@ -108,6 +110,7 @@ myTopicConfig = defaultTopicConfig
                        spawnShellIn "~/")
       , ("mail",       mailAction)
       , ("ssh",        spawnShell)
+      , ("vpn",        spawnApp "vpn_pwd.sh")
       , ("vim",        spawnVimIn "~/")
       , ("todo",       spawnApp "vim TODO")
       , ("web",        browserCmd)
@@ -139,6 +142,9 @@ promptedGoto = workspacePrompt defaultXPConfig goto
 
 promptedShift :: X ()
 promptedShift = workspacePrompt defaultXPConfig $ windows . W.shift
+
+commands :: X [(String, X ())]
+commands = defaultCommands
 
 bluetileLayoutHook =
     mkToggle1 NBFULL $
@@ -178,7 +184,7 @@ myConfig = bluetileConfig
     , startupHook = ewmhDesktopsStartup <+> myStartup
     , workspaces = myTopics }
   `additionalKeys` [
-    ((controlMask, xK_space),    spawn "DMENU_OPTIONS='-b -nb black -nf white' dmenu-launch")
+    ((controlMask, xK_space),    spawn "dmenu-launch")
   , ((mod4Mask .|. shiftMask, xK_p),    spawn "dmenu_run -b -nb black -nf white")
     --call dmenu
 
@@ -192,6 +198,10 @@ myConfig = bluetileConfig
   , ((mod4Mask .|. shiftMask, xK_n     ), windowPromptBring defaultXPConfig)
   , ((mod4Mask              , xK_g     ), promptedGoto)
   , ((mod4Mask .|. shiftMask, xK_g     ), promptedShift)
+
+  -- my command prompt
+  , ((mod4Mask, xK_semicolon), commands >>= runCommand)
+
 
   -- append to the todo file
   , ((mod4Mask              , xK_y), appendFilePrompt defaultXPConfig "/home/okay/TODO")
