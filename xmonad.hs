@@ -1,11 +1,15 @@
-
+-- {{{ DESCRIPTION
+-- Info on how to use this setup should go here:
+-- }}}
 
 -- {{{ IMPORTS
 
 import XMonad hiding ( (|||) )
 
+
 import XMonad.Actions.CycleWS
 import XMonad.Actions.DwmPromote
+import XMonad.Actions.DynamicWorkspaces
 import XMonad.Actions.TopicSpace
 import XMonad.Actions.Commands
 
@@ -70,8 +74,6 @@ import XMonad.Util.Themes
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 -- }}}
-
-
 
 -- {{{ WINDOW MANAGE HOOKS
 myManageHook = composeAll [
@@ -216,6 +218,10 @@ myConfig = bluetileConfig
   , ((mod4Mask, xK_space), dwmpromote)
 
   -- workspace + window prompts
+  , ((mod4Mask .|. shiftMask, xK_BackSpace), removeWorkspace)
+  , ((mod4Mask .|. shiftMask, xK_equal   ), addWorkspacePrompt defaultXPConfig)
+  , ((mod4Mask .|. shiftMask, xK_r      ), renameWorkspace defaultXPConfig)
+
   , ((mod4Mask              , xK_n     ), windowPromptGoto defaultXPConfig)
   , ((mod4Mask .|. shiftMask, xK_n     ), windowPromptBring defaultXPConfig)
   , ((mod4Mask              , xK_g     ), promptedGoto)
@@ -236,7 +242,9 @@ myConfig = bluetileConfig
   , ((mod4Mask .|. controlMask, xK_y ), sendMessage $ Toggle REFLECTY)
   , ((mod4Mask .|. controlMask, xK_m ), sendMessage $ Toggle MIRROR)
   , ((mod4Mask .|. controlMask, xK_b ), sendMessage $ Toggle NOBORDERS)
+
   ]
   -- }}}
 -- }}}
+
 main = xmonad =<< xmobar myConfig
