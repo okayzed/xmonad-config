@@ -1,3 +1,7 @@
+
+
+-- {{{ IMPORTS
+
 import XMonad hiding ( (|||) )
 
 import XMonad.Actions.CycleWS
@@ -5,11 +9,10 @@ import XMonad.Actions.DwmPromote
 import XMonad.Actions.TopicSpace
 import XMonad.Actions.Commands
 
-
-
 import XMonad.Config.Bluetile
 import XMonad.Config.Gnome
 
+-- {{{ HOOKS
 import XMonad.Hooks.CurrentWorkspaceOnTop
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.EwmhDesktops
@@ -21,7 +24,9 @@ import XMonad.Hooks.PositionStoreHooks
 import XMonad.Hooks.Script
 import XMonad.Hooks.ServerMode
 import XMonad.Hooks.WorkspaceByPos
+-- }}}
 
+-- {{{ LAYOUTS
 import XMonad.Layout.BorderResize
 import XMonad.Layout.BoringWindows
 import XMonad.Layout.ButtonDecoration
@@ -44,32 +49,41 @@ import XMonad.Layout.Tabbed
 import XMonad.Layout.TwoPane
 import XMonad.Layout.WindowSwitcherDecoration
 import XMonad.Layout.WindowNavigation
+-- }}}
 
+-- {{{ PROMPTS
 import XMonad.Prompt
 import XMonad.Prompt.AppendFile
 import XMonad.Prompt.Shell
 import XMonad.Prompt.Window
 import XMonad.Prompt.Workspace
 import XMonad.Prompt.XMonad
+-- }}}
 
+-- {{{ UTILS
 import XMonad.Util.EZConfig
 import XMonad.Util.Run
 import XMonad.Util.Replace
 import XMonad.Util.Themes
-
+-- }}}
+--
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
+-- }}}
 
 
 
+-- {{{ WINDOW MANAGE HOOKS
 myManageHook = composeAll [
   resource =? "desktop_window" --> doIgnore
   , className =? "Guake.py" --> doFloat
   , className =? "synapse" --> doIgnore
   , className =? "Google-Chrome" --> doShift "chrome"
   ]
-myDragger = BordersDragger
+-- }}}
 
+-- {{{TOPICS
+--
 -- The list of all topics/workspaces of your xmonad configuration.
 -- The order is important, new topics must be inserted
 -- at the end of the list if you want hot-restarting
@@ -117,7 +131,6 @@ myTopicConfig = defaultTopicConfig
       ]
   }
 
--- extend your keybindings
 spawnShell :: X ()
 spawnShell = currentTopicDir myTopicConfig >>= spawnShellIn
 
@@ -145,7 +158,9 @@ promptedShift = workspacePrompt defaultXPConfig $ windows . W.shift
 
 commands :: X [(String, X ())]
 commands = defaultCommands
+-- }}}
 
+-- {{{ LAYOUT HOOKS
 bluetileLayoutHook =
     mkToggle1 NBFULL $
     mkToggle1 REFLECTX $
@@ -171,9 +186,15 @@ bluetileLayoutHook =
     }
     tabbed = maximize $ tabbedBottomAlways shrinkText defaultTheme
 
+myDragger = BordersDragger
+-- }}}
+
+-- {{{ STARTUP
 myStartup = do
   spawn "bash ~/.xinitrc &"
+-- }}}
 
+-- {{{ CONFIG
 myConfig = bluetileConfig
   { borderWidth = 2
     , normalBorderColor  = "#000" -- "#dddddd"
@@ -183,25 +204,22 @@ myConfig = bluetileConfig
     , layoutHook = bluetileLayoutHook
     , startupHook = ewmhDesktopsStartup <+> myStartup
     , workspaces = myTopics }
+    -- {{{ KEYBINDINGS
   `additionalKeys` [
+    -- launchers
     ((controlMask, xK_space),    spawn "dmenu-launch")
+  , ((controlMask, xK_semicolon), commands >>= runCommand)
   , ((mod4Mask .|. shiftMask, xK_p),    spawn "dmenu_run -b -nb black -nf white")
-    --call dmenu
 
   -- workspace movement
-  , ((mod4Mask, xK_o), moveTo Prev NonEmptyWS)
-  , ((mod4Mask, xK_i), moveTo Next NonEmptyWS)
+  , ((mod4Mask, xK_o), moveTo Prev NonEmptyWS) -- i wish this was back to last workspace
   , ((mod4Mask, xK_space), dwmpromote)
 
-  -- prompts
+  -- workspace + window prompts
   , ((mod4Mask              , xK_n     ), windowPromptGoto defaultXPConfig)
   , ((mod4Mask .|. shiftMask, xK_n     ), windowPromptBring defaultXPConfig)
   , ((mod4Mask              , xK_g     ), promptedGoto)
   , ((mod4Mask .|. shiftMask, xK_g     ), promptedShift)
-
-  -- my command prompt
-  , ((mod4Mask, xK_semicolon), commands >>= runCommand)
-
 
   -- append to the todo file
   , ((mod4Mask              , xK_y), appendFilePrompt defaultXPConfig "/home/okay/TODO")
@@ -219,5 +237,6 @@ myConfig = bluetileConfig
   , ((mod4Mask .|. controlMask, xK_m ), sendMessage $ Toggle MIRROR)
   , ((mod4Mask .|. controlMask, xK_b ), sendMessage $ Toggle NOBORDERS)
   ]
-
+  -- }}}
+-- }}}
 main = xmonad =<< xmobar myConfig
