@@ -7,7 +7,7 @@
 import XMonad hiding ( (|||) )
 
 
-import XMonad.Actions.CycleWS
+import XMonad.Actions.CycleRecentWS
 import XMonad.Actions.DwmPromote
 import XMonad.Actions.DynamicWorkspaces
 import XMonad.Actions.TopicSpace
@@ -40,6 +40,7 @@ import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.Named
 import XMonad.Layout.NoBorders
+import XMonad.Layout.NoFrillsDecoration
 import XMonad.Layout.PositionStoreFloat
 import XMonad.Layout.Reflect
 import XMonad.Layout.SubLayouts
@@ -75,6 +76,7 @@ myManageHook = composeAll [
   , className =? "Guake.py" --> doFloat
   , className =? "synapse" --> doIgnore
   , className =? "Google-Chrome" --> doShift "chrome"
+  , className =? "Thunderbird" --> doShift "mail"
   ]
 -- }}}
 
@@ -131,7 +133,7 @@ spawnShell :: X ()
 spawnShell = currentTopicDir myTopicConfig >>= spawnShellIn
 
 mailAction = spawn $ "thunderbird"
-browserCmd = spawn $ "xdg-open http://google.com"
+browserCmd = spawn $ "chromium-browser"
 myShell = "bash"
 
 spawnShellIn :: Dir -> X ()
@@ -167,12 +169,12 @@ bluetileLayoutHook =
     minimize $
     boringWindows $ (
       named "Tiled" tiled2 |||
-      named "Tabbed" subbed |||
+      named "TwoPane" subbed |||
       named "Fullscreen" fullscreen |||
       named "Floating" floating
     )
   where
-    floating = borderResize $ positionStoreFloat
+    floating = floatingDeco $ borderResize $ positionStoreFloat
     fullscreen = Full
     tiled1 = mouseResizableTileMirrored {
       draggerType = myDragger
@@ -181,6 +183,7 @@ bluetileLayoutHook =
       draggerType = myDragger
     }
     subbed = (TwoPane 0.03 0.5)
+    floatingDeco l = noFrillsDeco shrinkText defaultTheme l
 
 myDragger = BordersDragger
 -- }}}
@@ -208,7 +211,7 @@ myConfig = bluetileConfig
   , ((mod4Mask .|. shiftMask, xK_p),    spawn "dmenu_run -b -nb black -nf white")
 
   -- workspace movement
-  , ((mod4Mask, xK_o), moveTo Prev NonEmptyWS) -- i wish this was back to last workspace
+  , ((mod4Mask, xK_Tab), cycleRecentWS [xK_Super_L] xK_Tab xK_grave)
   , ((mod4Mask, xK_space), dwmpromote)
 
   -- workspace + window prompts
@@ -226,7 +229,7 @@ myConfig = bluetileConfig
 
   -- switching to different layouts
   , ((mod4Mask              , xK_a), sendMessage $ JumpToLayout "Floating")
-  , ((mod4Mask              , xK_s), sendMessage $ JumpToLayout "Tabbed")
+  , ((mod4Mask              , xK_s), sendMessage $ JumpToLayout "TwoPane")
   , ((mod4Mask              , xK_d), sendMessage $ JumpToLayout "Tiled")
   , ((mod4Mask              , xK_f), sendMessage $ JumpToLayout "Fullscreen")
 
@@ -242,3 +245,5 @@ myConfig = bluetileConfig
 -- }}}
 
 main = xmonad =<< xmobar myConfig
+
+-- vim: foldmethod=marker
