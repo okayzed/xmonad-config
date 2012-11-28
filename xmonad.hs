@@ -14,30 +14,23 @@ import XMonad.Actions.TopicSpace
 import XMonad.Actions.Commands
 
 import XMonad.Config.Bluetile
-import XMonad.Config.Gnome
 
 -- {{{ HOOKS
 import XMonad.Hooks.CurrentWorkspaceOnTop
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.EwmhDesktops
-import XMonad.Hooks.FadeInactive
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.Minimize
 import XMonad.Hooks.PositionStoreHooks
 import XMonad.Hooks.Script
-import XMonad.Hooks.ServerMode
 import XMonad.Hooks.WorkspaceByPos
 -- }}}
 
 -- {{{ LAYOUTS
 import XMonad.Layout.BorderResize
 import XMonad.Layout.BoringWindows
-import XMonad.Layout.ButtonDecoration
-import XMonad.Layout.Column
 import XMonad.Layout.Combo
-import XMonad.Layout.Decoration
-import XMonad.Layout.DecorationAddons
 import XMonad.Layout.DraggingVisualizer
 import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Maximize
@@ -49,6 +42,7 @@ import XMonad.Layout.Named
 import XMonad.Layout.NoBorders
 import XMonad.Layout.PositionStoreFloat
 import XMonad.Layout.Reflect
+import XMonad.Layout.SubLayouts
 import XMonad.Layout.Tabbed
 import XMonad.Layout.TwoPane
 import XMonad.Layout.WindowSwitcherDecoration
@@ -173,20 +167,20 @@ bluetileLayoutHook =
     minimize $
     boringWindows $ (
       named "Tiled" tiled2 |||
-      named "Tabbed" tabbed |||
-      named "Floating" floating |||
-      named "Fullscreen" fullscreen
+      named "Tabbed" subbed |||
+      named "Fullscreen" fullscreen |||
+      named "Floating" floating
     )
   where
-    floating = maximize $ borderResize $ positionStoreFloat
-    fullscreen = maximize $ smartBorders Full
-    tiled1 = maximize $ mouseResizableTileMirrored {
+    floating = borderResize $ positionStoreFloat
+    fullscreen = Full
+    tiled1 = mouseResizableTileMirrored {
       draggerType = myDragger
     }
-    tiled2 = maximize $ mouseResizableTile {
+    tiled2 = mouseResizableTile {
       draggerType = myDragger
     }
-    tabbed = maximize $ tabbedBottomAlways shrinkText defaultTheme
+    subbed = (TwoPane 0.03 0.5)
 
 myDragger = BordersDragger
 -- }}}
@@ -201,7 +195,7 @@ myConfig = bluetileConfig
   { borderWidth = 2
     , normalBorderColor  = "#000" -- "#dddddd"
     , focusedBorderColor = "#999"    -- "#ff0000" don't use hex, not <24 bit safe
-    , manageHook = manageHook gnomeConfig <+> myManageHook
+    , manageHook = manageHook bluetileConfig <+> myManageHook
     , focusFollowsMouse  = True
     , layoutHook = bluetileLayoutHook
     , startupHook = ewmhDesktopsStartup <+> myStartup
