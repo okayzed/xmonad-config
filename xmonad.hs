@@ -61,9 +61,11 @@ import XMonad.Prompt.XMonad
 
 -- {{{ UTILS
 import XMonad.Util.EZConfig
+import XMonad.Util.NamedScratchpad
 import XMonad.Util.Run
 import XMonad.Util.Replace
 import XMonad.Util.Themes
+
 -- }}}
 --
 import qualified XMonad.StackSet as W
@@ -77,9 +79,20 @@ myManageHook = composeAll [
   , className =? "synapse" --> doIgnore
   , className =? "Google-Chrome" --> doShift "chrome"
   , className =? "Thunderbird" --> doShift "mail"
+  , className =? "Workrave" --> doIgnore
   ]
 -- }}}
 
+-- {{{ SCRATCHPADS
+scratchpads = [
+ -- run htop in xterm, find it by title, use default floating window placement
+     NS "htop" "xterm -e htop" (title =? "htop") defaultFloating ,
+
+ -- run gvim, find by role, don't float
+     NS "notes" "gvim --role notes ~/TODO" (role =? "notes") nonFloating
+  ] where role = stringProperty "WM_WINDOW_ROLE"
+
+-- }}}
 -- {{{TOPICS
 --
 -- The list of all topics/workspaces of your xmonad configuration.
@@ -122,6 +135,7 @@ myTopicConfig = defaultTopicConfig
                        spawnShellIn "~/")
       , ("mail",       mailAction)
       , ("ssh",        spawnShell)
+      , ("music",      spawnApp "chromium-browser --app=https://rdio.com")
       , ("vpn",        spawnApp "vpn_pwd.sh")
       , ("vim",        spawnVimIn "~/")
       , ("todo",       spawnApp "vim TODO")
@@ -198,7 +212,7 @@ myConfig = bluetileConfig
   { borderWidth = 2
     , normalBorderColor  = "#000" -- "#dddddd"
     , focusedBorderColor = "#999"    -- "#ff0000" don't use hex, not <24 bit safe
-    , manageHook = manageHook bluetileConfig <+> myManageHook
+    , manageHook = manageHook bluetileConfig <+> myManageHook <+> namedScratchpadManageHook scratchpads
     , focusFollowsMouse  = True
     , layoutHook = bluetileLayoutHook
     , startupHook = ewmhDesktopsStartup <+> myStartup
