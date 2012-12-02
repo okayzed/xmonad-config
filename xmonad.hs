@@ -90,15 +90,17 @@ myManageHook = composeAll [
 
 -- {{{ SCRATCHPADS
 scratchpads = [
- -- run htop in xterm, find it by title, use default floating window placement
+     -- run htop in xterm, find it by title, use default floating window placement
      NS "htop" "xterm -e htop" (title =? "htop") defaultFloating
      , NS "term"  (myTerm ++ " --role term") (role =? "term") manageTopTerm
      , NS "term2"  (myTerm ++ " --role term2") (role =? "term2") manageTerm
 
- -- run gvim, find by role, don't float
-     , NS "notes" "gvim --role notes note:TODO" (role =? "notes") nonFloating
+     -- run gvim, find by role, don't float
+     , NS "notes" "gvim --role notes note:" (role =? "notes") manageNote
+     , NS "todo" "gvim --role todo note:TODO" (role =? "todo") manageNote
   ] where 
     role = stringProperty "WM_WINDOW_ROLE"
+    manageNote = (customFloating $ W.RationalRect l 0.1 w 0.85)
     manageTopTerm = (customFloating $ W.RationalRect l 0 w h)
     manageTerm = (customFloating $ W.RationalRect l t w h)
     -- where clauses 
@@ -278,7 +280,8 @@ myConfig = bluetileConfig
   -- scratchpads
   , ((shiftMask, xK_F1), namedScratchpadAction scratchpads "term")
   , ((shiftMask, xK_F12), namedScratchpadAction scratchpads "term2")
-  , ((shiftMask, xK_F12), namedScratchpadAction scratchpads "term2")
+  , ((controlMask, xK_Insert), namedScratchpadAction scratchpads "notes")
+  , ((controlMask, xK_Home), namedScratchpadAction scratchpads "todo")
   ]
 
   -- }}}
