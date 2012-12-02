@@ -6,8 +6,8 @@ function run_if_not {
 
 if [[ $1 == "startup" ]]; then
   # Apps
-  guake -g &
   run_if_not workrave &
+  killall synapse
   synapse -s &
   run_if_not irssi_notifier
 

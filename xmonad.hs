@@ -91,11 +91,21 @@ myManageHook = composeAll [
 -- {{{ SCRATCHPADS
 scratchpads = [
  -- run htop in xterm, find it by title, use default floating window placement
-     NS "htop" "xterm -e htop" (title =? "htop") defaultFloating ,
+     NS "htop" "xterm -e htop" (title =? "htop") defaultFloating
+     , NS "term"  (myTerm ++ " --role term") (role =? "term") manageTopTerm
+     , NS "term2"  (myTerm ++ " --role term2") (role =? "term2") manageTerm
 
  -- run gvim, find by role, don't float
-     NS "notes" "gvim --role notes ~/TODO" (role =? "notes") nonFloating
-  ] where role = stringProperty "WM_WINDOW_ROLE"
+     , NS "notes" "gvim --role notes note:TODO" (role =? "notes") nonFloating
+  ] where 
+    role = stringProperty "WM_WINDOW_ROLE"
+    manageTopTerm = (customFloating $ W.RationalRect l 0 w h)
+    manageTerm = (customFloating $ W.RationalRect l t w h)
+    -- where clauses 
+    h = 0.5       -- height, 50% 
+    w = 1         -- width, 100%
+    t = 1 - h     -- bottom edge
+    l = (1 - w)/2 -- centered left/right
 
 -- }}}
 
@@ -155,15 +165,16 @@ spawnShell = currentTopicDir myTopicConfig >>= spawnShellIn
 mailAction = spawn $ "thunderbird"
 browserCmd = spawn $ "chromium-browser"
 myShell = "bash"
+myTerm = "gnome-terminal "
 
 spawnShellIn :: Dir -> X ()
-spawnShellIn dir = spawn $ "gnome-terminal --working-directory=" ++ dir ++ " -e '" ++ myShell ++ "'"
+spawnShellIn dir = spawn $ myTerm ++ "--working-directory=" ++ dir ++ " -e '" ++ myShell ++ "'"
 
 spawnApp :: String -> X ()
-spawnApp app = spawn $ "gnome-terminal -e '" ++ app ++ "'"
+spawnApp app = spawn $ myTerm ++ "-e '" ++ app ++ "'"
 
 spawnVimIn :: Dir -> X ()
-spawnVimIn dir = spawn $ "gnome-terminal --working-directory=" ++ dir ++ " -e vim"
+spawnVimIn dir = spawn $ myTerm ++ "--working-directory=" ++ dir ++ " -e vim"
 
 goto :: Topic -> X ()
 goto = switchTopic myTopicConfig
@@ -264,8 +275,19 @@ myConfig = bluetileConfig
   , ((modm .|. controlMask, xK_m ), sendMessage $ Toggle MIRROR)
   , ((modm .|. controlMask, xK_b ), sendMessage $ Toggle NOBORDERS)
 
+  -- scratchpads
+  , ((shiftMask, xK_F1), namedScratchpadAction scratchpads "term")
+  , ((shiftMask, xK_F12), namedScratchpadAction scratchpads "term2")
+  , ((shiftMask, xK_F12), namedScratchpadAction scratchpads "term2")
   ]
+
   -- }}}
+
+shortcut :: MonadIO x => keyMask -> String -> keySym -> ((keyMask, keySym), x ())
+shortcut keyMask command keySym = ((keyMask, keySym), spawn command)
+
+noMask :: String -> keySym -> ((KeyMask, keySym), X ())
+noMask = shortcut 0
 -- }}}
 --
 -- {{{ MOUSE BINDINGS
