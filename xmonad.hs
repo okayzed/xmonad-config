@@ -10,8 +10,11 @@ import XMonad hiding ( (|||) )
 import XMonad.Actions.CycleRecentWS
 import XMonad.Actions.DwmPromote
 import XMonad.Actions.DynamicWorkspaces
+import XMonad.Actions.FlexibleManipulate as Flex
 import XMonad.Actions.TopicSpace
 import XMonad.Actions.Commands
+import XMonad.Actions.SwapWorkspaces
+
 
 import XMonad.Config.Bluetile
 
@@ -32,6 +35,7 @@ import XMonad.Layout.BorderResize
 import XMonad.Layout.BoringWindows
 import XMonad.Layout.Combo
 import XMonad.Layout.DraggingVisualizer
+import XMonad.Layout.DecorationMadness
 import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Maximize
 import XMonad.Layout.Minimize
@@ -43,6 +47,7 @@ import XMonad.Layout.NoBorders
 import XMonad.Layout.NoFrillsDecoration
 import XMonad.Layout.PositionStoreFloat
 import XMonad.Layout.Reflect
+import XMonad.Layout.SimpleFloat
 import XMonad.Layout.SubLayouts
 import XMonad.Layout.Tabbed
 import XMonad.Layout.TwoPane
@@ -93,6 +98,7 @@ scratchpads = [
   ] where role = stringProperty "WM_WINDOW_ROLE"
 
 -- }}}
+
 -- {{{TOPICS
 --
 -- The list of all topics/workspaces of your xmonad configuration.
@@ -105,12 +111,12 @@ myTopics =
   , "music"
   , "todo"
   , "mail"
-  , "terminal"
+  , "term"
   , "vim"
   , "ssh"
   , "vpn"
+  , "top"
   , "conf"
-  , "chrome"
   ]
 
 myTopicConfig :: TopicConfig
@@ -138,7 +144,7 @@ myTopicConfig = defaultTopicConfig
       , ("music",      spawnApp "chromium-browser --app=https://rdio.com")
       , ("vpn",        spawnApp "vpn_pwd.sh")
       , ("vim",        spawnVimIn "~/")
-      , ("todo",       spawnApp "vim TODO")
+      , ("todo",       spawnApp "vim note:TODO")
       , ("web",        browserCmd)
       ]
   }
@@ -197,7 +203,7 @@ bluetileLayoutHook =
       draggerType = myDragger
     }
     subbed = (TwoPane 0.03 0.5)
-    floatingDeco l = noFrillsDeco shrinkText defaultTheme l
+    floatingDeco l = floatSimpleSimple
 
 myDragger = BordersDragger
 -- }}}
@@ -208,6 +214,7 @@ myStartup = do
 -- }}}
 
 -- {{{ CONFIG
+modm = mod4Mask
 myConfig = bluetileConfig
   { borderWidth = 2
     , normalBorderColor  = "#000" -- "#dddddd"
@@ -216,46 +223,71 @@ myConfig = bluetileConfig
     , focusFollowsMouse  = True
     , layoutHook = bluetileLayoutHook
     , startupHook = ewmhDesktopsStartup <+> myStartup
+    , modMask = modm
+    , mouseBindings = newMouse
     , workspaces = myTopics }
     -- {{{ KEYBINDINGS
   `additionalKeys` [
     -- launchers
-    ((controlMask, xK_space),    spawn "dmenu-launch")
-  , ((controlMask, xK_semicolon), commands >>= runCommand)
-  , ((mod4Mask .|. shiftMask, xK_p),    spawn "dmenu_run -b -nb black -nf white")
+  ((controlMask, xK_semicolon), commands >>= runCommand)
+  , ((modm .|. shiftMask, xK_p),    spawn "dmenu_run -b -nb black -nf white")
 
   -- workspace movement
-  , ((mod4Mask, xK_Tab), cycleRecentWS [xK_Super_L] xK_Tab xK_grave)
-  , ((mod4Mask, xK_space), dwmpromote)
+  , ((modm, xK_Tab), cycleRecentWS [xK_Super_L] xK_Tab xK_grave)
+  , ((modm, xK_space), dwmpromote)
 
+  , ((modm .|. shiftMask, xK_h), swapTo Next)
+  , ((modm .|. shiftMask, xK_l), swapTo Prev)
   -- workspace + window prompts
-  , ((mod4Mask .|. shiftMask, xK_BackSpace), removeWorkspace)
-  , ((mod4Mask .|. shiftMask, xK_equal   ), addWorkspacePrompt defaultXPConfig)
-  , ((mod4Mask .|. shiftMask, xK_r      ), renameWorkspace defaultXPConfig)
+  , ((modm .|. shiftMask, xK_BackSpace), removeWorkspace)
+  , ((modm .|. shiftMask, xK_equal   ), addWorkspacePrompt defaultXPConfig)
+  , ((modm .|. shiftMask, xK_r      ), renameWorkspace defaultXPConfig)
 
-  , ((mod4Mask              , xK_n     ), windowPromptGoto defaultXPConfig)
-  , ((mod4Mask .|. shiftMask, xK_n     ), windowPromptBring defaultXPConfig)
-  , ((mod4Mask              , xK_g     ), promptedGoto)
-  , ((mod4Mask .|. shiftMask, xK_g     ), promptedShift)
+  , ((modm              , xK_n     ), windowPromptGoto defaultXPConfig)
+  , ((modm .|. shiftMask, xK_n     ), windowPromptBring defaultXPConfig)
+  , ((modm              , xK_g     ), promptedGoto)
+  , ((modm .|. shiftMask, xK_g     ), promptedShift)
 
   -- append to the todo file
-  , ((mod4Mask              , xK_y), appendFilePrompt defaultXPConfig "/home/okay/TODO")
+  , ((modm              , xK_y), appendFilePrompt defaultXPConfig "/home/okay/TODO")
 
   -- switching to different layouts
-  , ((mod4Mask              , xK_a), sendMessage $ JumpToLayout "Floating")
-  , ((mod4Mask              , xK_s), sendMessage $ JumpToLayout "TwoPane")
-  , ((mod4Mask              , xK_d), sendMessage $ JumpToLayout "Tiled")
-  , ((mod4Mask              , xK_f), sendMessage $ JumpToLayout "Fullscreen")
+  , ((modm              , xK_a), sendMessage $ JumpToLayout "Floating")
+  , ((modm              , xK_s), sendMessage $ JumpToLayout "TwoPane")
+  , ((modm              , xK_d), sendMessage $ JumpToLayout "Tiled")
+  , ((modm              , xK_f), sendMessage $ JumpToLayout "Fullscreen")
 
   -- running modifiers on layouts
-  , ((mod4Mask .|. controlMask, xK_space ), sendMessage $ Toggle NBFULL)
-  , ((mod4Mask .|. controlMask, xK_x ), sendMessage $ Toggle REFLECTX)
-  , ((mod4Mask .|. controlMask, xK_y ), sendMessage $ Toggle REFLECTY)
-  , ((mod4Mask .|. controlMask, xK_m ), sendMessage $ Toggle MIRROR)
-  , ((mod4Mask .|. controlMask, xK_b ), sendMessage $ Toggle NOBORDERS)
+  , ((modm .|. controlMask, xK_space ), sendMessage $ Toggle NBFULL)
+  , ((modm .|. controlMask, xK_x ), sendMessage $ Toggle REFLECTX)
+  , ((modm .|. controlMask, xK_y ), sendMessage $ Toggle REFLECTY)
+  , ((modm .|. controlMask, xK_m ), sendMessage $ Toggle MIRROR)
+  , ((modm .|. controlMask, xK_b ), sendMessage $ Toggle NOBORDERS)
 
   ]
   -- }}}
+-- }}}
+--
+-- {{{ MOUSE BINDINGS
+myMouseMoveWindow :: Window -> X ()
+myMouseMoveWindow w = whenX (isClient w) $ withDisplay $ \d -> do
+    io $ raiseWindow d w
+    wa <- io $ getWindowAttributes d w
+    (_, _, _, ox', oy', _, _, _) <- io $ queryPointer d w
+    let ox = fromIntegral ox'
+        oy = fromIntegral oy'
+    mouseDrag (\ex ey -> io $ moveWindow d w (fromIntegral (fromIntegral (wa_x wa) + (ex - ox)))
+                                             (fromIntegral (fromIntegral (wa_y wa) + (ey - oy))))
+      (focus w)
+
+myMouse x  = [
+  -- optional. but nicer than normal mouse move and size
+  ((modm, button1), (\w -> focus w >> myMouseMoveWindow w))
+  , ((modm, button3), (\w -> focus w >> mouseResizeWindow w))
+  ]
+
+
+newMouse x = M.union (mouseBindings defaultConfig x) (M.fromList (myMouse x))
 -- }}}
 
 main = xmonad =<< xmobar myConfig
