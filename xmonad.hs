@@ -4,9 +4,13 @@
 
 -- {{{ IMPORTS
 
+-- {{{ MISC
 import XMonad hiding ( (|||) )
+import XMonad.Config.Bluetile
+-- }}}
 
 
+-- {{{ ACTIONS
 import XMonad.Actions.CycleRecentWS
 import XMonad.Actions.DwmPromote
 import XMonad.Actions.DynamicWorkspaces
@@ -14,9 +18,8 @@ import XMonad.Actions.FlexibleManipulate as Flex
 import XMonad.Actions.TopicSpace
 import XMonad.Actions.Commands
 import XMonad.Actions.SwapWorkspaces
+-- }}}
 
-
-import XMonad.Config.Bluetile
 
 -- {{{ HOOKS
 import XMonad.Hooks.CurrentWorkspaceOnTop
@@ -77,38 +80,34 @@ import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 -- }}}
 
--- {{{ WINDOW MANAGE HOOKS
-myManageHook = composeAll [
-  resource =? "desktop_window" --> doIgnore
-  , className =? "Guake.py" --> doFloat
-  , className =? "synapse" --> doIgnore
-  , className =? "Google-Chrome" --> doShift "chrome"
-  , className =? "Thunderbird" --> doShift "mail"
-  , className =? "Workrave" --> doIgnore
-  ]
--- }}}
+-- {{{ LAYOUTS
+bluetileLayoutHook =
+    mkToggle1 NBFULL $
+    mkToggle1 REFLECTX $
+    mkToggle1 REFLECTY $
+    mkToggle1 NOBORDERS $
+    mkToggle1 MIRROR $
+    avoidStruts $
+    minimize $
+    boringWindows $ (
+      named "Tiled" tiled2 |||
+      named "TwoPane" subbed |||
+      named "Fullscreen" fullscreen |||
+      named "Floating" floating
+    )
+  where
+    floating = floatingDeco $ borderResize $ positionStoreFloat
+    fullscreen = simpleTabbed
+    tiled1 = mouseResizableTileMirrored {
+      draggerType = myDragger
+    }
+    tiled2 = mouseResizableTile {
+      draggerType = myDragger
+    }
+    subbed = (TwoPane 0.03 0.5)
+    floatingDeco l = floatSimpleSimple
 
--- {{{ SCRATCHPADS
-scratchpads = [
-     -- run htop in xterm, find it by title, use default floating window placement
-     NS "htop" "xterm -e htop" (title =? "htop") defaultFloating
-     , NS "term"  (myTerm ++ " --role term") (role =? "term") manageTopTerm
-     , NS "term2"  (myTerm ++ " --role term2") (role =? "term2") manageTerm
-
-     -- run gvim, find by role, don't float
-     , NS "notes" "gvim --role notes note:" (role =? "notes") manageNote
-     , NS "todo" "gvim --role todo note:TODO" (role =? "todo") manageNote
-  ] where 
-    role = stringProperty "WM_WINDOW_ROLE"
-    manageNote = (customFloating $ W.RationalRect l 0.1 w 0.85)
-    manageTopTerm = (customFloating $ W.RationalRect l 0 w h)
-    manageTerm = (customFloating $ W.RationalRect l t w h)
-    -- where clauses 
-    h = 0.5       -- height, 50% 
-    w = 1         -- width, 100%
-    t = 1 - h     -- bottom edge
-    l = (1 - w)/2 -- centered left/right
-
+myDragger = BordersDragger
 -- }}}
 
 -- {{{TOPICS
@@ -128,8 +127,12 @@ myTopics =
   , "ssh"
   , "vpn"
   , "top"
+  , "maps"
   , "conf"
   ]
+
+skipTopics :: [Topic]
+skipTopics = []
 
 myTopicConfig :: TopicConfig
 myTopicConfig = defaultTopicConfig
@@ -157,6 +160,7 @@ myTopicConfig = defaultTopicConfig
       , ("vpn",        spawnApp "vpn_pwd.sh")
       , ("vim",        spawnVimIn "~/")
       , ("todo",       spawnApp "vim note:TODO")
+      , ("maps",       spawnApp "chromium-browser --app=https://maps.google.com")
       , ("web",        browserCmd)
       ]
   }
@@ -191,59 +195,45 @@ commands :: X [(String, X ())]
 commands = defaultCommands
 -- }}}
 
--- {{{ LAYOUT HOOKS
-bluetileLayoutHook =
-    mkToggle1 NBFULL $
-    mkToggle1 REFLECTX $
-    mkToggle1 REFLECTY $
-    mkToggle1 NOBORDERS $
-    mkToggle1 MIRROR $
-    avoidStruts $
-    minimize $
-    boringWindows $ (
-      named "Tiled" tiled2 |||
-      named "TwoPane" subbed |||
-      named "Fullscreen" fullscreen |||
-      named "Floating" floating
-    )
-  where
-    floating = floatingDeco $ borderResize $ positionStoreFloat
-    fullscreen = Full
-    tiled1 = mouseResizableTileMirrored {
-      draggerType = myDragger
-    }
-    tiled2 = mouseResizableTile {
-      draggerType = myDragger
-    }
-    subbed = (TwoPane 0.03 0.5)
-    floatingDeco l = floatSimpleSimple
+-- {{{ SCRATCHPADS
+scratchpads = [
+     -- run htop in xterm, find it by title, use default floating window placement
+     NS "htop" "xterm -e htop" (title =? "htop") defaultFloating
+     , NS "term"  (myTerm ++ " --role term") (role =? "term") manageTopTerm
+     , NS "term2"  (myTerm ++ " --role term2") (role =? "term2") manageTerm
 
-myDragger = BordersDragger
+     -- run gvim, find by role, don't float
+     , NS "notes" "gvim --role notes note:" (role =? "notes") manageNote
+     , NS "todo" "gvim --role todo note:TODO" (role =? "todo") manageNote
+  ] where 
+    role = stringProperty "WM_WINDOW_ROLE"
+    manageNote = (customFloating $ W.RationalRect l 0.1 w 0.85)
+    manageTopTerm = (customFloating $ W.RationalRect l 0 w h)
+    manageTerm = (customFloating $ W.RationalRect l t w h)
+    -- where clauses 
+    h = 0.5       -- height, 50% 
+    w = 1         -- width, 100%
+    t = 1 - h     -- bottom edge
+    l = (1 - w)/2 -- centered left/right
+
 -- }}}
 
--- {{{ STARTUP
-myStartup = do
-  spawn "bash ~/.xinitrc &"
+-- {{{ WINDOW MANAGE HOOKS
+myManageHook = composeAll [
+  resource =? "desktop_window" --> doIgnore
+  , className =? "synapse" --> doIgnore
+  , className =? "Google-Chrome" --> doShift "chrome"
+  , className =? "Thunderbird" --> doShift "mail"
+  , className =? "Workrave" --> doIgnore
+  ]
 -- }}}
 
--- {{{ CONFIG
-modm = mod4Mask
-myConfig = bluetileConfig
-  { borderWidth = 2
-    , normalBorderColor  = "#000" -- "#dddddd"
-    , focusedBorderColor = "#999"    -- "#ff0000" don't use hex, not <24 bit safe
-    , manageHook = manageHook bluetileConfig <+> myManageHook <+> namedScratchpadManageHook scratchpads
-    , focusFollowsMouse  = True
-    , layoutHook = bluetileLayoutHook
-    , startupHook = ewmhDesktopsStartup <+> myStartup
-    , modMask = modm
-    , mouseBindings = newMouse
-    , workspaces = myTopics }
-    -- {{{ KEYBINDINGS
-  `additionalKeys` [
-    -- launchers
+-- {{{ KEYBINDINGS
+myAdditionalKeys = [
   ((controlMask, xK_semicolon), commands >>= runCommand)
+  -- launchers
   , ((modm .|. shiftMask, xK_p),    spawn "dmenu_run -b -nb black -nf white")
+  , ((modm              , xK_Return), currentTopicAction myTopicConfig)
 
   -- workspace movement
   , ((modm, xK_Tab), cycleRecentWS [xK_Super_L] xK_Tab xK_grave)
@@ -284,15 +274,8 @@ myConfig = bluetileConfig
   , ((controlMask, xK_Home), namedScratchpadAction scratchpads "todo")
   ]
 
-  -- }}}
-
-shortcut :: MonadIO x => keyMask -> String -> keySym -> ((keyMask, keySym), x ())
-shortcut keyMask command keySym = ((keyMask, keySym), spawn command)
-
-noMask :: String -> keySym -> ((KeyMask, keySym), X ())
-noMask = shortcut 0
 -- }}}
---
+
 -- {{{ MOUSE BINDINGS
 myMouseMoveWindow :: Window -> X ()
 myMouseMoveWindow w = whenX (isClient w) $ withDisplay $ \d -> do
@@ -315,6 +298,29 @@ myMouse x  = [
 newMouse x = M.union (mouseBindings defaultConfig x) (M.fromList (myMouse x))
 -- }}}
 
+-- {{{ STARTUP
+myStartup = do
+  spawn "bash ~/.xinitrc &"
+-- }}}
+
+-- {{{ CONFIG
+modm = mod4Mask
+myConfig = bluetileConfig
+  { borderWidth = 2
+    , normalBorderColor  = "#000" -- "#dddddd"
+    , focusedBorderColor = "#999"    -- "#ff0000" don't use hex, not <24 bit safe
+    , manageHook = manageHook bluetileConfig <+> myManageHook <+> namedScratchpadManageHook scratchpads
+    , focusFollowsMouse  = True
+    , layoutHook = bluetileLayoutHook
+    , startupHook = ewmhDesktopsStartup <+> myStartup
+    , modMask = modm
+    , mouseBindings = newMouse
+    , workspaces = myTopics }
+  `additionalKeys` myAdditionalKeys
+  -- }}}
+
+-- {{{ MAIN
 main = xmonad =<< xmobar myConfig
+-- }}}
 
 -- vim: foldmethod=marker
