@@ -120,11 +120,11 @@ myTopics :: [Topic]
 myTopics =
   [ "web" -- the first one
   , "music"
-  , "todo"
+  , "ssh"
   , "mail"
   , "term"
   , "vim"
-  , "ssh"
+  , "scratch"
   , "vpn"
   , "top"
   , "maps"
@@ -139,7 +139,6 @@ myTopicConfig = defaultTopicConfig
   { topicDirs = M.fromList $
       [ ("conf", ".xmonad/")
       , ("music", "Music")
-      , ("wiki", "wiki")
       , ("terminal", "tonka/src")
       ]
   , defaultTopicAction = const $ spawnShell >*> 3
@@ -205,13 +204,13 @@ scratchpads = [
      -- run gvim, find by role, don't float
      , NS "notes" "gvim --role notes note:" (role =? "notes") manageNote
      , NS "todo" "gvim --role todo note:TODO" (role =? "todo") manageNote
-  ] where 
+  ] where
     role = stringProperty "WM_WINDOW_ROLE"
     manageNote = (customFloating $ W.RationalRect l 0.1 w 0.85)
     manageTopTerm = (customFloating $ W.RationalRect l 0 w h)
     manageTerm = (customFloating $ W.RationalRect l t w h)
-    -- where clauses 
-    h = 0.5       -- height, 50% 
+    -- where clauses
+    h = 0.5       -- height, 50%
     w = 1         -- width, 100%
     t = 1 - h     -- bottom edge
     l = (1 - w)/2 -- centered left/right
@@ -273,6 +272,13 @@ myAdditionalKeys = [
   , ((controlMask, xK_Insert), namedScratchpadAction scratchpads "notes")
   , ((controlMask, xK_Home), namedScratchpadAction scratchpads "todo")
   ]
+  ++
+  -- mod-[1..9] ++ [0] %! Switch to workspace N
+  -- mod-shift-[1..9] ++ [0] %! Move client to workspace N
+  [((m .|. modm, k), windows $ f i)
+      | (i, k) <- zip (XMonad.workspaces myConfig) ([xK_1 .. xK_9] ++ [xK_0])
+      , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
+
 
 -- }}}
 
