@@ -1,0 +1,9 @@
+keycode 66 = Control_L
+clear Control
+clear Lock
+clear Mod1
+clear Mod4
+add Shift = Shift_R
+add Control = Control_L
+add Mod1 = Meta_L
+add Mod4 = Super_L Meta_R
