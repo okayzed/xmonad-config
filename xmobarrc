@@ -12,12 +12,12 @@ Config { font = "-*-terminusmod-medium-*-*-*-14-*-*-*-*-*-*-*"
                                      "-l", "red", "-m", "blue", "-h", "green"]
                                     10
                     , Run Memory ["-t","<usedratio>%"] 10
-                    , Run Network "wlan1" ["-t","<rx>/<tx>","-L","0","-H","32","--normal","green","--high","red"] 10
-                    , Run Network "eth1" ["-t","<rx>/<tx>","-L","0","-H","32","--normal","green","--high","red"] 10
+                    , Run Network "wlan0" ["-t","<rx>/<tx>","-L","0","-H","32","--normal","green","--high","red"] 10
+                    , Run Network "eth0" ["-t","<rx>/<tx>","-L","0","-H","32","--normal","green","--high","red"] 10
                     , Run Date "%a %B %_d %Y %I:%M:%S %p" "date" 10
                     , Run StdinReader
                     ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = "%StdinReader% }{ BAT: %battery% | NET: w.%wlan1% e.%eth1% CPU: %multicpu% MEM: %memory% | <fc=#FFFFFF>%date%</fc>"
+       , template = "%StdinReader% }{ BAT: %battery% | NET: w.%wlan0% e.%eth0% CPU: %multicpu% MEM: %memory% | <fc=#FFFFFF>%date%</fc>"
        }

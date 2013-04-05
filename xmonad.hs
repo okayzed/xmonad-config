@@ -17,6 +17,7 @@ import XMonad.Actions.DynamicWorkspaces
 import XMonad.Actions.FlexibleManipulate as Flex
 import XMonad.Actions.TopicSpace
 import XMonad.Actions.Commands
+import XMonad.Actions.PhysicalScreens
 import XMonad.Actions.SwapWorkspaces
 -- }}}
 
@@ -280,6 +281,17 @@ myAdditionalKeys = [
       , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 
+  -- physical screens
+  --
+  -- mod-{[,],\}, Switch to physical/Xinerama screens 1, 2, or 3
+  -- mod-shift-{[,],\}, Move client to screen 1, 2, or 3
+  --
+  ++
+  [((modm .|. mask, key), f sc)
+    | (key, sc) <- zip [xK_bracketleft, xK_bracketright, xK_backslash] [0..]
+    , (f, mask) <- [(viewScreen, 0), (sendToScreen, shiftMask)]]
+
+
 -- }}}
 
 -- {{{ MOUSE BINDINGS
@@ -310,7 +322,7 @@ myStartup = do
 -- }}}
 
 -- {{{ CONFIG
-modm = mod4Mask
+modm = mod1Mask
 myConfig = bluetileConfig
   { borderWidth = 2
     , normalBorderColor  = "#000" -- "#dddddd"
