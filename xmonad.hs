@@ -7,6 +7,7 @@
 -- {{{ MISC
 import XMonad hiding ( (|||) )
 import XMonad.Config.Bluetile
+import XMonad.Hooks.FadeInactive
 -- }}}
 
 
@@ -32,6 +33,7 @@ import XMonad.Hooks.Minimize
 import XMonad.Hooks.PositionStoreHooks
 import XMonad.Hooks.Script
 import XMonad.Hooks.WorkspaceByPos
+import XMonad.Hooks.UrgencyHook
 -- }}}
 
 -- {{{ LAYOUTS
@@ -98,7 +100,7 @@ bluetileLayoutHook =
     )
   where
     floating = floatingDeco $ borderResize $ positionStoreFloat
-    fullscreen = simpleTabbed
+    fullscreen = tabbed shrinkText (theme smallClean)
     tiled1 = mouseResizableTileMirrored {
       draggerType = myDragger
     }
@@ -268,8 +270,6 @@ myAdditionalKeys = [
   , ((modm .|. controlMask, xK_b ), sendMessage $ Toggle NOBORDERS)
 
   -- scratchpads
-  , ((shiftMask, xK_F1), namedScratchpadAction scratchpads "term")
-  , ((shiftMask, xK_F12), namedScratchpadAction scratchpads "term2")
   , ((controlMask, xK_Insert), namedScratchpadAction scratchpads "notes")
   , ((controlMask, xK_Home), namedScratchpadAction scratchpads "todo")
   ]
@@ -321,15 +321,21 @@ myStartup = do
   spawn "bash ~/.xinitrc &"
 -- }}}
 
+myLogHook :: X ()
+myLogHook = fadeInactiveLogHook fadeAmount
+  where fadeAmount = 0.8
+
+
 -- {{{ CONFIG
 modm = mod1Mask
-myConfig = bluetileConfig
+myConfig = withUrgencyHook NoUrgencyHook $ bluetileConfig
   { borderWidth = 2
     , normalBorderColor  = "#000" -- "#dddddd"
     , focusedBorderColor = "#999"    -- "#ff0000" don't use hex, not <24 bit safe
     , manageHook = manageHook bluetileConfig <+> myManageHook <+> namedScratchpadManageHook scratchpads
     , focusFollowsMouse  = True
     , layoutHook = bluetileLayoutHook
+    , logHook = myLogHook
     , startupHook = ewmhDesktopsStartup <+> myStartup
     , modMask = modm
     , mouseBindings = newMouse

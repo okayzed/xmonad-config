@@ -9,7 +9,6 @@ Config { font = "-*-terminusmod-medium-*-*-*-14-*-*-*-*-*-*-*"
                                      "-L", "10", "-H", "80", "-p", "3",
                                      "--", "-O", "<fc=green>On</fc> - ", "-o", "",
                                      "-L", "-15", "-H", "-5",
-                                     "-c", "energy_full",
                                      "-l", "red", "-m", "blue", "-h", "green"]
                                     10
                     , Run Memory ["-t","<usedratio>%"] 10
