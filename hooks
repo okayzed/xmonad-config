@@ -20,6 +20,7 @@ if [[ $1 == "startup" ]]; then
 
   # docks
   run_if_not xmobar &
+  run_if_not nautilus &
 
   killall trayer
 
@@ -31,4 +32,5 @@ if [[ $1 == "startup" ]]; then
   run_if_not trayer --edge top --align right --SetDockType true --SetPartialStrut true  --width 11 --transparent true --tint 0x000000 --height 24 &
 
   gnome-settings-daemon &
+
 fi

@@ -121,17 +121,16 @@ myDragger = BordersDragger
 -- to work.
 myTopics :: [Topic]
 myTopics =
-  [ "web" -- the first one
-  , "music"
-  , "ssh"
-  , "mail"
-  , "gimp"
-  , "skype"
-  , "scratch"
-  , "vpn"
-  , "top"
-  , "maps"
-  , "conf"
+  [ "1" -- the first one
+  , "2"
+  , "3"
+  , "4"
+  , "5"
+  , "6"
+  , "7"
+  , "8"
+  , "9"
+  , "10"
   ]
 
 skipTopics :: [Topic]
@@ -232,9 +231,7 @@ myManageHook = composeAll [
 
 -- {{{ KEYBINDINGS
 myAdditionalKeys = [
-  ((controlMask, xK_semicolon), commands >>= runCommand)
-  -- launchers
-  , ((modm .|. shiftMask, xK_p),    spawn "dmenu_run -b -nb black -nf white")
+    ((controlMask , xK_semicolon),    spawn "dmenu_run -b -nb black -nf white")
   , ((modm              , xK_Return), currentTopicAction myTopicConfig)
 
   -- workspace movement
@@ -334,7 +331,7 @@ myConfig = withUrgencyHook NoUrgencyHook $ bluetileConfig
     , focusedBorderColor = "#999"    -- "#ff0000" don't use hex, not <24 bit safe
     , manageHook = manageHook bluetileConfig <+> myManageHook <+> namedScratchpadManageHook scratchpads
     , focusFollowsMouse  = True
-    , layoutHook = bluetileLayoutHook
+    , layoutHook = smartBorders $ bluetileLayoutHook
     , logHook = myLogHook
     , startupHook = ewmhDesktopsStartup <+> myStartup
     , modMask = modm
