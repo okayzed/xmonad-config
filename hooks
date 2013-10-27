@@ -5,6 +5,9 @@ function run_if_not {
 }
 
 if [[ $1 == "startup" ]]; then
+  gnome-settings-daemon &
+
+  run_if_not nautilus -n &
   # Apps
   run_if_not workrave &
   killall synapse
@@ -15,12 +18,13 @@ if [[ $1 == "startup" ]]; then
   killall nm-applet
   run_if_not nm-applet &
 
+  run_if_not volumeicon &
+
   # lock screen
   gnome-screensaver &
 
   # docks
   run_if_not xmobar &
-  run_if_not nautilus &
 
   killall trayer
 
@@ -30,7 +34,5 @@ if [[ $1 == "startup" ]]; then
 
   # Add --monitor 1 or 0 to change where it appears
   run_if_not trayer --edge top --align right --SetDockType true --SetPartialStrut true  --width 11 --transparent true --tint 0x000000 --height 24 &
-
-  gnome-settings-daemon &
 
 fi
