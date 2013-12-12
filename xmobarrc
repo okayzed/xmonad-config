@@ -1,7 +1,7 @@
-Config { font = "-*-terminusmod-medium-*-*-*-14-*-*-*-*-*-*-*"
+Config { font = "-*-terminusmod-medium-*-*-*-18-*-*-*-*-*-*-*"
        , bgColor = "black"
        , fgColor = "grey"
-       , position = TopSize L 90 24
+       , position = TopSize L 90 32
        , lowerOnStart = True
        , commands = [ Run MultiCpu ["-t","<total0>% <total1>% <total2>% <total3>%"] 10
                     , Run BatteryP ["BAT0"]

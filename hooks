@@ -5,7 +5,10 @@ function run_if_not {
 }
 
 if [[ $1 == "startup" ]]; then
-  gnome-settings-daemon &
+  /usr/bin/setxkbmap -option 'ctrl:nocaps'
+  xmodmap ~/.xmodmap
+
+  cinnamon-settings-daemon &
 
   run_if_not nautilus -n &
   # Apps
@@ -21,18 +24,24 @@ if [[ $1 == "startup" ]]; then
   run_if_not volumeicon &
 
   # lock screen
-  gnome-screensaver &
+  cinnamon-screensaver &
 
   # docks
   run_if_not xmobar &
-
-  killall trayer
 
   export SSH_ASKPASS="/usr/bin/ssh-askpass"
   ssh-add &
 
 
   # Add --monitor 1 or 0 to change where it appears
+  killall trayer
   run_if_not trayer --edge top --align right --SetDockType true --SetPartialStrut true  --width 11 --transparent true --tint 0x000000 --height 24 &
+
+  killall ginn
+  run_if_not ginn
+
+  /usr/bin/setxkbmap -option 'ctrl:nocaps'
+  xmodmap ~/.xmodmap
+
 
 fi
