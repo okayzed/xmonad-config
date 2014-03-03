@@ -1,7 +1,7 @@
-Config { font = "-*-terminusmod-medium-*-*-*-18-*-*-*-*-*-*-*"
+Config { font = "xft:Monospace:size=10"
        , bgColor = "black"
        , fgColor = "grey"
-       , position = TopSize L 90 32
+       , position = TopSize L 100 32
        , lowerOnStart = True
        , commands = [ Run MultiCpu ["-t","<total0>% <total1>% <total2>% <total3>%"] 10
                     , Run BatteryP ["BAT0"]
@@ -12,12 +12,12 @@ Config { font = "-*-terminusmod-medium-*-*-*-18-*-*-*-*-*-*-*"
                                      "-l", "red", "-m", "blue", "-h", "green"]
                                     10
                     , Run Memory ["-t","<usedratio>%"] 10
-                    , Run Network "wlan2" ["-t","<rx>/<tx>","-L","0","-H","32","--normal","green","--high","red"] 10
-                    , Run Network "eth2" ["-t","<rx>/<tx>","-L","0","-H","32","--normal","green","--high","red"] 10
+                    , Run Network "wlan0" ["-t","<rx>/<tx>","-L","0","-H","32","--normal","green","--high","red"] 10
+                    , Run Network "eth0" ["-t","<rx>/<tx>","-L","0","-H","32","--normal","green","--high","red"] 10
                     , Run Date "%a %B %_d %Y %I:%M:%S %p" "date" 10
                     , Run StdinReader
                     ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = "%StdinReader% }{ BAT: %battery% | NET: w.%wlan2% e.%eth2% CPU: %multicpu% MEM: %memory% | <fc=#FFFFFF>%date%</fc>"
+       , template = "%StdinReader% }{ BAT: %battery% | NET: w.%wlan0% e.%eth0% CPU: %multicpu% MEM: %memory% | <fc=#FFFFFF>%date%</fc>"
        }

@@ -20,6 +20,7 @@ import XMonad.Actions.TopicSpace
 import XMonad.Actions.Commands
 import XMonad.Actions.PhysicalScreens
 import XMonad.Actions.SwapWorkspaces
+import XMonad.Actions.UpdatePointer
 -- }}}
 
 
@@ -59,6 +60,9 @@ import XMonad.Layout.Tabbed
 import XMonad.Layout.TwoPane
 import XMonad.Layout.WindowSwitcherDecoration
 import XMonad.Layout.WindowNavigation
+
+import XMonad.Layout.Monitor
+
 -- }}}
 
 -- {{{ PROMPTS
@@ -72,7 +76,6 @@ import XMonad.Prompt.XMonad
 
 -- {{{ UTILS
 import XMonad.Util.EZConfig
-import XMonad.Util.NamedScratchpad
 import XMonad.Util.Run
 import XMonad.Util.Replace
 import XMonad.Util.Themes
@@ -84,6 +87,8 @@ import qualified Data.Map as M
 -- }}}
 
 -- {{{ LAYOUTS
+
+myTabConfig = defaultTheme { decoHeight = 24 }
 bluetileLayoutHook =
     mkToggle1 NBFULL $
     mkToggle1 REFLECTX $
@@ -100,7 +105,7 @@ bluetileLayoutHook =
     )
   where
     floating = floatingDeco $ borderResize $ positionStoreFloat
-    fullscreen = tabbed shrinkText (theme smallClean)
+    fullscreen = tabbed shrinkText myTabConfig
     tiled1 = mouseResizableTileMirrored {
       draggerType = myDragger
     }
@@ -127,10 +132,6 @@ myTopics =
   , "4"
   , "5"
   , "6"
-  , "7"
-  , "8"
-  , "9"
-  , "10"
   ]
 
 skipTopics :: [Topic]
@@ -196,36 +197,14 @@ commands :: X [(String, X ())]
 commands = defaultCommands
 -- }}}
 
--- {{{ SCRATCHPADS
-scratchpads = [
-     -- run htop in xterm, find it by title, use default floating window placement
-     NS "htop" "xterm -e htop" (title =? "htop") defaultFloating
-     , NS "term"  (myTerm ++ " --role term") (role =? "term") manageTopTerm
-     , NS "term2"  (myTerm ++ " --role term2") (role =? "term2") manageTerm
-
-     -- run gvim, find by role, don't float
-     , NS "notes" "gvim --role notes note:" (role =? "notes") manageNote
-     , NS "todo" "gvim --role todo note:TODO" (role =? "todo") manageNote
-  ] where
-    role = stringProperty "WM_WINDOW_ROLE"
-    manageNote = (customFloating $ W.RationalRect l 0.1 w 0.85)
-    manageTopTerm = (customFloating $ W.RationalRect l 0 w h)
-    manageTerm = (customFloating $ W.RationalRect l t w h)
-    -- where clauses
-    h = 0.5       -- height, 50%
-    w = 1         -- width, 100%
-    t = 1 - h     -- bottom edge
-    l = (1 - w)/2 -- centered left/right
-
--- }}}
-
 -- {{{ WINDOW MANAGE HOOKS
 myManageHook = composeAll [
   resource =? "desktop_window" --> doIgnore
+  , resource =? "Desktop" --> doFullFloat
   , className =? "synapse" --> doIgnore
-  , className =? "Google-Chrome" --> doShift "chrome"
-  , className =? "Thunderbird" --> doShift "mail"
+  , className =? "Docky" --> doIgnore
   , className =? "Workrave" --> doIgnore
+  , className =? "onboard" --> doIgnore
   ]
 -- }}}
 
@@ -258,6 +237,7 @@ myAdditionalKeys = [
   , ((modm              , xK_s), sendMessage $ JumpToLayout "TwoPane")
   , ((modm              , xK_d), sendMessage $ JumpToLayout "Tiled")
   , ((modm              , xK_f), sendMessage $ JumpToLayout "Fullscreen")
+  , ((modm              , xK_r), sendMessage NextLayout)
 
   -- running modifiers on layouts
   , ((modm .|. controlMask, xK_space ), sendMessage $ Toggle NBFULL)
@@ -266,9 +246,6 @@ myAdditionalKeys = [
   , ((modm .|. controlMask, xK_m ), sendMessage $ Toggle MIRROR)
   , ((modm .|. controlMask, xK_b ), sendMessage $ Toggle NOBORDERS)
 
-  -- scratchpads
-  , ((controlMask, xK_Insert), namedScratchpadAction scratchpads "notes")
-  , ((controlMask, xK_Home), namedScratchpadAction scratchpads "todo")
   ]
   ++
   -- mod-[1..9] ++ [0] %! Switch to workspace N
@@ -318,10 +295,14 @@ myStartup = do
   spawn "bash ~/.xinitrc &"
 -- }}}
 
-myLogHook :: X ()
-myLogHook = fadeInactiveLogHook fadeAmount
-  where fadeAmount = 0.8
+--{{{
 
+myMonitor = monitor
+  { prop = ClassName "onboard"
+    , rect = Rectangle 0 0 40 40 -- rectangle 40x20 in upper left corner
+  }
+
+--}}}
 
 -- {{{ CONFIG
 modm = mod1Mask
@@ -329,11 +310,11 @@ myConfig = withUrgencyHook NoUrgencyHook $ bluetileConfig
   { borderWidth = 2
     , normalBorderColor  = "#000" -- "#dddddd"
     , focusedBorderColor = "#999"    -- "#ff0000" don't use hex, not <24 bit safe
-    , manageHook = manageHook bluetileConfig <+> myManageHook <+> namedScratchpadManageHook scratchpads
+    , manageHook = manageHook bluetileConfig <+> myManageHook <+> manageMonitor myMonitor
     , focusFollowsMouse  = True
     , layoutHook = smartBorders $ bluetileLayoutHook
-    , logHook = myLogHook
     , startupHook = ewmhDesktopsStartup <+> myStartup
+    , logHook = updatePointer (Relative 0.5 0.5)
     , modMask = modm
     , mouseBindings = newMouse
     , workspaces = myTopics }
