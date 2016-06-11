@@ -5,27 +5,16 @@ function run_if_not {
 }
 
 if [[ $1 == "startup" ]]; then
-  /usr/bin/setxkbmap -option 'ctrl:nocaps'
-  xmodmap ~/.xmodmap
+  run_if_not xfce4-session &
+  /usr/bin/setxkbmap -option 'ctrl:nocaps' &
+  xmodmap ~/.xmodmap &
 
-  cinnamon-settings-daemon &
-  gnome-panel &
-
-  run_if_not nautilus -n &
-  # Apps
   run_if_not workrave &
-  killall synapse
-  synapse -s &
+  killall kupfer
+  kupfer --no-splash &
 
   # network manager
-  killall nm-applet 
-  run_if_not nm-applet &
-
-  # lock screen
-  run_if_not cinnamon-screensaver &
-
   # docks
-  run_if_not xmobar &
 
   # onboard
   run_if_not onboard &
@@ -40,14 +29,8 @@ if [[ $1 == "startup" ]]; then
 
   killall ginn
   run_if_not ginn /etc/ginn/wishes.xml &
-
-  run_if_not xcompmgr -n &
-  run_if_not unclutter -idle 0.1 &
-
-  hsetroot -solid "#000000" &
-
+#  run_if_not unclutter -idle 0.1 &
 
   /usr/bin/setxkbmap -option 'ctrl:nocaps' &
   xmodmap ~/.xmodmap &
-
 fi

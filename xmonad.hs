@@ -105,7 +105,7 @@ bluetileLayoutHook =
     )
   where
     floating = floatingDeco $ borderResize $ positionStoreFloat
-    fullscreen = tabbed shrinkText myTabConfig
+    fullscreen = Full
     tiled1 = mouseResizableTileMirrored {
       draggerType = myDragger
     }
@@ -132,6 +132,10 @@ myTopics =
   , "4"
   , "5"
   , "6"
+  , "7"
+  , "8"
+  , "9"
+  , "0"
   ]
 
 skipTopics :: [Topic]
@@ -173,7 +177,7 @@ spawnShell = currentTopicDir myTopicConfig >>= spawnShellIn
 mailAction = spawn $ "thunderbird"
 browserCmd = spawn $ "chromium-browser"
 myShell = "bash"
-myTerm = "gnome-terminal "
+myTerm = "xfce4-terminal "
 
 spawnShellIn :: Dir -> X ()
 spawnShellIn dir = spawn $ myTerm ++ "--working-directory=" ++ dir ++ " -e '" ++ myShell ++ "'"
@@ -305,7 +309,7 @@ myMonitor = monitor
 --}}}
 
 -- {{{ CONFIG
-modm = mod1Mask
+modm = mod4Mask
 myConfig = withUrgencyHook NoUrgencyHook $ bluetileConfig
   { borderWidth = 2
     , normalBorderColor  = "#000" -- "#dddddd"
@@ -314,7 +318,7 @@ myConfig = withUrgencyHook NoUrgencyHook $ bluetileConfig
     , focusFollowsMouse  = True
     , layoutHook = smartBorders $ bluetileLayoutHook
     , startupHook = ewmhDesktopsStartup <+> myStartup
-    , logHook = updatePointer (Relative 0.5 0.5)
+    , logHook = updatePointer (0.5, 0.5) (1,1)
     , modMask = modm
     , mouseBindings = newMouse
     , workspaces = myTopics }
