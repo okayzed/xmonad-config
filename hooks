@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 function run_if_not {
-  pgrep $1 || $*
+  pgrep -f $1 || $*
 }
 
 if [[ $1 == "startup" ]]; then
@@ -15,6 +15,11 @@ if [[ $1 == "startup" ]]; then
 
   # network manager
   # docks
+
+  run_if_not autolux --horizontal --interval 400 &
+
+  killall xcompmgr
+  run if not xcompmgr -a &
 
   # onboard
   run_if_not onboard &

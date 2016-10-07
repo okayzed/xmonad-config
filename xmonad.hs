@@ -236,6 +236,9 @@ myAdditionalKeys = [
   -- append to the todo file
   , ((modm              , xK_y), appendFilePrompt defaultXPConfig "/home/okay/TODO")
 
+  -- brightness
+  , ((0                 , xK_F5), spawn "xbacklight -dec 2")
+  , ((0                 , xK_F6), spawn "xbacklight -inc 2")
   -- switching to different layouts
   , ((modm              , xK_a), sendMessage $ JumpToLayout "Floating")
   , ((modm              , xK_s), sendMessage $ JumpToLayout "TwoPane")
