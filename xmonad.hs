@@ -144,38 +144,22 @@ skipTopics = []
 myTopicConfig :: TopicConfig
 myTopicConfig = defaultTopicConfig
   { topicDirs = M.fromList $
-      [ ("conf", ".xmonad/")
-      , ("music", "Music")
-      , ("terminal", "tonka/src")
+      [ ("1", "~/")
+      , ("3", "~/tonka/src/")
       ]
-  , defaultTopicAction = const $ spawnShell >*> 3
   , defaultTopic = "dashboard"
   , topicActions = M.fromList $
-      [ ("conf",       spawnApp "vim .xmonad/xmonad.hs" >>
-                       spawnShell)
-      , ("top",        spawnApp "iftop -i wlan1" >>
-                       spawnApp "iftop -i eth1" >>
-                       spawnApp "top"
-                       )
-      , ("terminal",   spawnShellIn "~/" >>
-                       spawnShellIn "~/" >>
-                       spawnShellIn "~/")
-      , ("mail",       mailAction)
-      , ("ssh",        spawnShell)
-      , ("music",      spawnApp "chromium-browser --app=https://rdio.com")
-      , ("vpn",        spawnApp "vpn_pwd.sh")
-      , ("vim",        spawnVimIn "~/")
-      , ("todo",       spawnApp "vim note:TODO")
-      , ("maps",       spawnApp "chromium-browser --app=https://maps.google.com")
-      , ("web",        browserCmd)
+      [ ("1",       spawnApp "chromium-browser")
+      , ("2",       spawnApp "chromium-browser --app=https://gmail.com")
+      , ("3",       spawnShell)
+      , ("4",       spawnApp "chromium-browser --app=https://localhost:3000")
+      , ("0",       spawnApp "zotero")
       ]
   }
 
 spawnShell :: X ()
 spawnShell = currentTopicDir myTopicConfig >>= spawnShellIn
 
-mailAction = spawn $ "thunderbird"
-browserCmd = spawn $ "chromium-browser"
 myShell = "bash"
 myTerm = "xfce4-terminal "
 
@@ -183,7 +167,7 @@ spawnShellIn :: Dir -> X ()
 spawnShellIn dir = spawn $ myTerm ++ "--working-directory=" ++ dir ++ " -e '" ++ myShell ++ "'"
 
 spawnApp :: String -> X ()
-spawnApp app = spawn $ myTerm ++ "-e '" ++ app ++ "'"
+spawnApp app = spawn $ app
 
 spawnVimIn :: Dir -> X ()
 spawnVimIn dir = spawn $ myTerm ++ "--working-directory=" ++ dir ++ " -e vim"
@@ -258,7 +242,7 @@ myAdditionalKeys = [
   -- mod-[1..9] ++ [0] %! Switch to workspace N
   -- mod-shift-[1..9] ++ [0] %! Move client to workspace N
   [((m .|. modm, k), windows $ f i)
-      | (i, k) <- zip (XMonad.workspaces myConfig) ([xK_1 .. xK_9] ++ [xK_0])
+      | (i, k) <- zip (myTopics) ([xK_1 .. xK_9] ++ [xK_0])
       , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 
@@ -321,7 +305,7 @@ myConfig = withUrgencyHook NoUrgencyHook $ bluetileConfig
     , focusFollowsMouse  = True
     , layoutHook = smartBorders $ bluetileLayoutHook
     , startupHook = ewmhDesktopsStartup <+> myStartup
-    , logHook = updatePointer (0.5, 0.5) (1,1)
+    , logHook = ewmhDesktopsLogHook <+> updatePointer (0.5, 0.5) (1,1)
     , modMask = modm
     , mouseBindings = newMouse
     , workspaces = myTopics }

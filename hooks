@@ -7,7 +7,9 @@ function run_if_not {
 if [[ $1 == "startup" ]]; then
   run_if_not xfce4-session &
   /usr/bin/setxkbmap -option 'ctrl:nocaps' &
-  xmodmap ~/.xmodmap &
+  xmodmap ~/.Xmodmap &
+
+  run_if_not arbtt-capture -r 10
 
   run_if_not workrave &
   killall kupfer
@@ -16,13 +18,10 @@ if [[ $1 == "startup" ]]; then
   # network manager
   # docks
 
-  run_if_not autolux --horizontal --interval 400 &
+  run_if_not autolux --crop "10x500+400+0" --sleep-interval 513 &
 
-  killall xcompmgr
-  run if not xcompmgr -a &
-
-  # onboard
-  run_if_not onboard &
+#  killall xcompmgr
+#  run if not xcompmgr -a &
 
   export SSH_ASKPASS="/usr/bin/ssh-askpass"
   ssh-add &
@@ -37,5 +36,5 @@ if [[ $1 == "startup" ]]; then
 #  run_if_not unclutter -idle 0.1 &
 
   /usr/bin/setxkbmap -option 'ctrl:nocaps' &
-  xmodmap ~/.xmodmap &
+  xmodmap ~/.Xmodmap &
 fi
