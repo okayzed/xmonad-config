@@ -9,11 +9,11 @@ if [[ $1 == "startup" ]]; then
   /usr/bin/setxkbmap -option 'ctrl:nocaps' &
   xmodmap ~/.Xmodmap &
 
-  run_if_not arbtt-capture -r 10
+#  run_if_not arbtt-capture -r 10
 
   run_if_not workrave &
-  killall kupfer
-  kupfer --no-splash &
+#  killall kupfer
+#  kupfer --no-splash &
 
   # network manager
   # docks

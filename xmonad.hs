@@ -43,6 +43,7 @@ import XMonad.Layout.BoringWindows
 import XMonad.Layout.Combo
 import XMonad.Layout.DraggingVisualizer
 import XMonad.Layout.DecorationMadness
+import XMonad.Layout.Grid
 import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Maximize
 import XMonad.Layout.Minimize
@@ -101,7 +102,8 @@ bluetileLayoutHook =
       named "Tiled" tiled2 |||
       named "TwoPane" subbed |||
       named "Fullscreen" fullscreen |||
-      named "Floating" floating
+      named "Floating" floating |||
+      named "Grid" grid
     )
   where
     floating = floatingDeco $ borderResize $ positionStoreFloat
@@ -113,6 +115,7 @@ bluetileLayoutHook =
       draggerType = myDragger
     }
     subbed = (TwoPane 0.03 0.5)
+    grid = Grid
     floatingDeco l = floatSimpleSimple
 
 myDragger = BordersDragger
@@ -148,13 +151,6 @@ myTopicConfig = defaultTopicConfig
       , ("3", "~/tonka/src/")
       ]
   , defaultTopic = "dashboard"
-  , topicActions = M.fromList $
-      [ ("1",       spawnApp "chromium-browser")
-      , ("2",       spawnApp "chromium-browser --app=https://gmail.com")
-      , ("3",       spawnShell)
-      , ("4",       spawnApp "chromium-browser --app=https://localhost:3000")
-      , ("0",       spawnApp "zotero")
-      ]
   }
 
 spawnShell :: X ()
@@ -199,6 +195,8 @@ myManageHook = composeAll [
 -- {{{ KEYBINDINGS
 myAdditionalKeys = [
     ((controlMask , xK_semicolon),    spawn "dmenu_run -b -nb black -nf white")
+  , ((controlMask , xK_space),    spawn "/usr/bin/rofi -combi-modi run,drun -show combi -modi combi")
+  , ((controlMask .|. shiftMask, xK_semicolon),    spawn "dashdoc")
   , ((modm              , xK_Return), currentTopicAction myTopicConfig)
 
   -- workspace movement
@@ -214,11 +212,10 @@ myAdditionalKeys = [
 
   , ((modm              , xK_n     ), windowPromptGoto defaultXPConfig)
   , ((modm .|. shiftMask, xK_n     ), windowPromptBring defaultXPConfig)
-  , ((modm              , xK_g     ), promptedGoto)
-  , ((modm .|. shiftMask, xK_g     ), promptedShift)
 
   -- append to the todo file
-  , ((modm              , xK_y), appendFilePrompt defaultXPConfig "/home/okay/TODO")
+  , ((controlMask .|. shiftMask , xK_y), appendFilePrompt defaultXPConfig "/home/okay/TODO")
+  , ((controlMask .|. shiftMask , xK_j), appendFilePrompt defaultXPConfig "/home/okay/SJRN")
 
   -- brightness
   , ((0                 , xK_F5), spawn "xbacklight -dec 2")
@@ -228,6 +225,7 @@ myAdditionalKeys = [
   , ((modm              , xK_s), sendMessage $ JumpToLayout "TwoPane")
   , ((modm              , xK_d), sendMessage $ JumpToLayout "Tiled")
   , ((modm              , xK_f), sendMessage $ JumpToLayout "Fullscreen")
+  , ((modm              , xK_g), sendMessage $ JumpToLayout "Grid")
   , ((modm              , xK_r), sendMessage NextLayout)
 
   -- running modifiers on layouts
