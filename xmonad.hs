@@ -61,6 +61,7 @@ import XMonad.Layout.Tabbed
 import XMonad.Layout.TwoPane
 import XMonad.Layout.WindowSwitcherDecoration
 import XMonad.Layout.WindowNavigation
+import XMonad.Layout.NoBorders
 
 import XMonad.Layout.Monitor
 
@@ -98,7 +99,7 @@ bluetileLayoutHook =
     mkToggle1 MIRROR $
     avoidStruts $
     minimize $
-    boringWindows $ (
+    boringWindows $ noBorders (
       named "Tiled" tiled2 |||
       named "TwoPane" subbed |||
       named "Fullscreen" fullscreen |||
@@ -195,7 +196,7 @@ myManageHook = composeAll [
 -- {{{ KEYBINDINGS
 myAdditionalKeys = [
     ((controlMask , xK_semicolon),    spawn "dmenu_run -b -nb black -nf white")
-  , ((controlMask , xK_space),    spawn "/usr/bin/rofi -combi-modi run,drun -show combi -modi combi")
+  , ((controlMask , xK_space),    spawn "/usr/bin/rofi -combi-modi drun,run -show combi -modi combi")
   , ((controlMask .|. shiftMask, xK_semicolon),    spawn "dashdoc")
   , ((modm              , xK_Return), currentTopicAction myTopicConfig)
 
