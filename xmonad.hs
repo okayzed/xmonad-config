@@ -61,7 +61,6 @@ import XMonad.Layout.Tabbed
 import XMonad.Layout.TwoPane
 import XMonad.Layout.WindowSwitcherDecoration
 import XMonad.Layout.WindowNavigation
-import XMonad.Layout.NoBorders
 
 import XMonad.Layout.Monitor
 
@@ -96,10 +95,9 @@ bluetileLayoutHook =
     mkToggle1 REFLECTX $
     mkToggle1 REFLECTY $
     mkToggle1 NOBORDERS $
-    mkToggle1 MIRROR $
     avoidStruts $
     minimize $
-    boringWindows $ noBorders (
+    boringWindows $ lessBorders Screen (
       named "Tiled" tiled2 |||
       named "TwoPane" subbed |||
       named "Fullscreen" fullscreen |||
@@ -233,7 +231,6 @@ myAdditionalKeys = [
   , ((modm .|. controlMask, xK_space ), sendMessage $ Toggle NBFULL)
   , ((modm .|. controlMask, xK_x ), sendMessage $ Toggle REFLECTX)
   , ((modm .|. controlMask, xK_y ), sendMessage $ Toggle REFLECTY)
-  , ((modm .|. controlMask, xK_m ), sendMessage $ Toggle MIRROR)
   , ((modm .|. controlMask, xK_b ), sendMessage $ Toggle NOBORDERS)
 
   ]
@@ -304,7 +301,7 @@ myConfig = withUrgencyHook NoUrgencyHook $ bluetileConfig
     , focusFollowsMouse  = True
     , layoutHook = smartBorders $ bluetileLayoutHook
     , startupHook = ewmhDesktopsStartup <+> myStartup
-    , logHook = ewmhDesktopsLogHook <+> updatePointer (0.5, 0.5) (1,1)
+    , logHook = ewmhDesktopsLogHook <+> updatePointer (0.5, 0.5) (1,1) <+> dynamicLogXinerama
     , modMask = modm
     , mouseBindings = newMouse
     , workspaces = myTopics }
@@ -312,7 +309,22 @@ myConfig = withUrgencyHook NoUrgencyHook $ bluetileConfig
   -- }}}
 
 -- {{{ MAIN
-main = xmonad =<< xmobar myConfig
+-- Command to launch the bar.
+myBar = "xmobar"
+
+-- Custom PP, configure it as you like. It determines what is being written to the bar.
+myPP = xmobarPP {
+  ppCurrent = xmobarColor "green" "" . wrap "[" "]"
+    , ppTitle   = xmobarColor "green"  "" . shorten 40
+    , ppVisible = wrap "(" ")"
+    , ppUrgent  = xmobarColor "red" "yellow"
+}
+
+-- Key binding to toggle the gap for the bar.
+toggleStrutsKey XConfig {XMonad.modMask = modMask} = (modMask, xK_b)
+
+
+main = xmonad =<< statusBar myBar myPP toggleStrutsKey myConfig
 -- }}}
 
 -- vim: foldmethod=marker
