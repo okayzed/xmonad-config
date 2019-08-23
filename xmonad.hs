@@ -226,6 +226,7 @@ myAdditionalKeys = [
   , ((modm              , xK_f), sendMessage $ JumpToLayout "Fullscreen")
   , ((modm              , xK_g), sendMessage $ JumpToLayout "Grid")
   , ((modm              , xK_r), sendMessage NextLayout)
+  , ((modm .|. shiftMask, xK_b), sendMessage $ ToggleStrut D)
 
   -- running modifiers on layouts
   , ((modm .|. controlMask, xK_space ), sendMessage $ Toggle NBFULL)
@@ -282,22 +283,13 @@ myStartup = do
   spawn "bash ~/.xinitrc &"
 -- }}}
 
---{{{
-
-myMonitor = monitor
-  { prop = ClassName "onboard"
-    , rect = Rectangle 0 0 40 40 -- rectangle 40x20 in upper left corner
-  }
-
---}}}
-
 -- {{{ CONFIG
 modm = mod4Mask
 myConfig = withUrgencyHook NoUrgencyHook $ bluetileConfig
   { borderWidth = 2
     , normalBorderColor  = "#000" -- "#dddddd"
     , focusedBorderColor = "#999"    -- "#ff0000" don't use hex, not <24 bit safe
-    , manageHook = manageHook bluetileConfig <+> myManageHook <+> manageMonitor myMonitor
+    , manageHook = manageHook bluetileConfig <+> myManageHook
     , focusFollowsMouse  = True
     , layoutHook = smartBorders $ bluetileLayoutHook
     , startupHook = ewmhDesktopsStartup <+> myStartup

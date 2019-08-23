@@ -11,6 +11,10 @@ if [[ $1 == "startup" ]]; then
 
   run_if_not workrave &
 
+  # run_if_not trayer --edge top  --align right --widthtype request --distance 0 --distancefrom right --transparent true --tint 0 --alpha 0 --distance 10 --distancefrom right --height 24 --heighttype pixel
+  # killall xfce4-panel
+
+
   run_if_not autolux --crop "10x500+400+0" --sleep-interval 513 &
 
   export SSH_ASKPASS="/usr/bin/ssh-askpass"

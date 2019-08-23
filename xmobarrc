@@ -19,12 +19,11 @@ Config { font = "xft:Ubuntu Mono:size=12"
                                      "-l", "red", "-m", "blue", "-h", "green"]
                                     10 "battery1"
                     , Run Memory ["-t","<usedratio>%"] 10
-                    , Run Network "wlp4s0" ["-t","<rx>/<tx>","-L","0","-H","32","--normal","green","--high","red"] 10
-                    , Run Network "enp0s31f6" ["-t","<rx>/<tx>","-L","0","-H","32","--normal","green","--high","red"] 10
+                    , Run DynNetwork ["-t","<rx>/<tx>","-L","0","-H","32","--normal","green","--high","red"] 10
                     , Run Date "%a %B %_d %Y %I:%M:%S %p" "date" 10
                     , Run StdinReader
                     ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = "%StdinReader% }{ NET: w.%wlp4s0% e.%enp0s31f6% | CPU: %multicpu% | MEM: %memory% | BAT: %battery1% / %battery0% | <fc=#FFFFFF>%date%</fc>"
+       , template = "%StdinReader% }{ NET: %dynnetwork% | CPU: %multicpu% | MEM: %memory% | BAT: %battery1% / %battery0% | <fc=#FFFFFF>%date%</fc>"
        }
