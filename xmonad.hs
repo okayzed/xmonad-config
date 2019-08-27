@@ -95,12 +95,12 @@ bluetileLayoutHook =
     mkToggle1 REFLECTX $
     mkToggle1 REFLECTY $
     mkToggle1 NOBORDERS $
-    avoidStruts $
+    avoidStrutsOn [U] $
     minimize $
     boringWindows $ lessBorders Screen (
+      named "Fullscreen" fullscreen |||
       named "Tiled" tiled2 |||
       named "TwoPane" subbed |||
-      named "Fullscreen" fullscreen |||
       named "Floating" floating |||
       named "Grid" grid
     )
@@ -143,32 +143,8 @@ myTopics =
 skipTopics :: [Topic]
 skipTopics = []
 
-myTopicConfig :: TopicConfig
-myTopicConfig = defaultTopicConfig
-  { topicDirs = M.fromList $
-      [ ("1", "~/")
-      , ("3", "~/tonka/src/")
-      ]
-  , defaultTopic = "dashboard"
-  }
-
-spawnShell :: X ()
-spawnShell = currentTopicDir myTopicConfig >>= spawnShellIn
-
-myShell = "bash"
-myTerm = "xfce4-terminal "
-
-spawnShellIn :: Dir -> X ()
-spawnShellIn dir = spawn $ myTerm ++ "--working-directory=" ++ dir ++ " -e '" ++ myShell ++ "'"
-
-spawnApp :: String -> X ()
-spawnApp app = spawn $ app
-
-spawnVimIn :: Dir -> X ()
-spawnVimIn dir = spawn $ myTerm ++ "--working-directory=" ++ dir ++ " -e vim"
-
 goto :: Topic -> X ()
-goto = switchTopic myTopicConfig
+goto = switchTopic defaultTopicConfig
 
 promptedGoto :: X ()
 promptedGoto = workspacePrompt defaultXPConfig goto
@@ -188,6 +164,7 @@ myManageHook = composeAll [
   , className =? "Docky" --> doIgnore
   , className =? "Workrave" --> doIgnore
   , className =? "onboard" --> doIgnore
+  , className =? "xfce4-panel" --> doIgnore
   ]
 -- }}}
 
@@ -196,7 +173,7 @@ myAdditionalKeys = [
     ((controlMask , xK_semicolon),    spawn "dmenu_run -b -nb black -nf white")
   , ((controlMask , xK_space),    spawn "/usr/bin/rofi -combi-modi drun,run -show combi -modi combi")
   , ((controlMask .|. shiftMask, xK_semicolon),    spawn "dashdoc")
-  , ((modm              , xK_Return), currentTopicAction myTopicConfig)
+  , ((modm              , xK_Return), currentTopicAction defaultTopicConfig)
 
   -- workspace movement
   , ((modm, xK_Tab), cycleRecentWS [xK_Super_L] xK_Tab xK_grave)
@@ -227,6 +204,7 @@ myAdditionalKeys = [
   , ((modm              , xK_g), sendMessage $ JumpToLayout "Grid")
   , ((modm              , xK_r), sendMessage NextLayout)
   , ((modm .|. shiftMask, xK_b), sendMessage $ ToggleStrut D)
+  , ((modm .|. shiftMask, xK_u), sendMessage $ ToggleStrut U)
 
   -- running modifiers on layouts
   , ((modm .|. controlMask, xK_space ), sendMessage $ Toggle NBFULL)
@@ -304,12 +282,17 @@ myConfig = withUrgencyHook NoUrgencyHook $ bluetileConfig
 -- Command to launch the bar.
 myBar = "xmobar"
 
+hideStr :: String -> String
+hideStr str = ""
+
 -- Custom PP, configure it as you like. It determines what is being written to the bar.
 myPP = xmobarPP {
   ppCurrent = xmobarColor "green" "" . wrap "[" "]"
     , ppTitle   = xmobarColor "green"  "" . shorten 40
     , ppVisible = wrap "(" ")"
-    , ppUrgent  = xmobarColor "red" "yellow"
+    , ppLayout = hideStr
+    , ppSep = " | "
+    , ppUrgent  = xmobarColor "" "#ffcc33"
 }
 
 -- Key binding to toggle the gap for the bar.

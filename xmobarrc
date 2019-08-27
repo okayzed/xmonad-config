@@ -1,29 +1,35 @@
-Config { font = "xft:Ubuntu Mono:size=12"
-       , bgColor = "black"
-       , fgColor = "grey"
+Config { font = "xft:Ubuntu Mono:size=11"
+       , bgColor  = "black"
+       , fgColor  = "grey"
        , position = TopSize L 100 32
+       -- , alpha = 0
        , lowerOnStart = True
-       , commands = [ Run MultiCpu ["-t","<total0>% <total1>% <total2>% <total3>%"] 10
+       , commands = [ Run MultiCpu ["-p", "2", "-t","<total0>% <total1>% <total2>% <total3>%"] 10
                     , Run BatteryN ["BAT0"]
-                                    ["-t", "<acstatus><watts> (<left>%)",
-                                     "-L", "10", "-H", "80", "-p", "3",
+                                    ["-m", "2", "-t", "<acstatus><watts> (<left>%)",
+                                     "-L", "10", "-H", "80",
                                      "--", "-O", "<fc=green>On</fc> - ", "-o", "",
                                      "-L", "-15", "-H", "-5",
                                      "-l", "red", "-m", "blue", "-h", "green"]
                                     10 "battery0"
                     , Run BatteryN ["BAT1"]
-                                    ["-t", "<acstatus><watts> (<left>%)",
-                                     "-L", "10", "-H", "80", "-p", "3",
+                                    ["-m", "2", "-t", "<acstatus><watts> (<left>%)",
+                                     "-L", "10", "-H", "80",
                                      "--", "-O", "<fc=green>On</fc> - ", "-o", "",
                                      "-L", "-15", "-H", "-5",
                                      "-l", "red", "-m", "blue", "-h", "green"]
                                     10 "battery1"
                     , Run Memory ["-t","<usedratio>%"] 10
-                    , Run DynNetwork ["-t","<rx>/<tx>","-L","0","-H","32","--normal","green","--high","red"] 10
+                    , Run CoreTemp ["-t", "<core0>C",
+                       "-L", "60", "-H", "70",
+                       "-l", "lightblue", "-h", "red"] 50
+
+                    , Run DynNetwork ["-m", "7", "-t","<rx> <tx>","-L","5000","-H","50000","--normal","green2","--high","orangered2", "-S", "True"] 10
                     , Run Date "%a %B %_d %Y %I:%M:%S %p" "date" 10
                     , Run StdinReader
                     ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = "%StdinReader% }{ NET: %dynnetwork% | CPU: %multicpu% | MEM: %memory% | BAT: %battery1% / %battery0% | <fc=#FFFFFF>%date%</fc>"
+       -- , template = "%StdinReader% }{ NET: %dynnetwork% | CPU: %multicpu% | MEM: %memory% | BAT: %battery1% / %battery0% | <fc=#FFFFFF>%date%</fc>"
+       , template = "%StdinReader% }{ <fc=orangered2>NET:</fc> %dynnetwork% | <fc=orange2>CPU:</fc> %multicpu% %coretemp% | <fc=yellow2>MEM:</fc> %memory% | <fc=green2>BAT:</fc> %battery1% / %battery0% | <fc=skyblue>%date%</fc>"
        }
