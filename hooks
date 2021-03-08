@@ -19,7 +19,4 @@ if [[ $1 == "startup" ]]; then
 
   export SSH_ASKPASS="/usr/bin/ssh-askpass"
   ssh-add &
-
-  feh --bg-scale "~/tonka/wallpapers/whitewalker.jpg"
-
 fi

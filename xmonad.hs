@@ -221,16 +221,6 @@ myAdditionalKeys = [
       , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 
-  -- physical screens
-  --
-  -- mod-{[,],\}, Switch to physical/Xinerama screens 1, 2, or 3
-  -- mod-shift-{[,],\}, Move client to screen 1, 2, or 3
-  --
-  ++
-  [((modm .|. mask, key), f sc)
-    | (key, sc) <- zip [xK_bracketleft, xK_bracketright, xK_backslash] [0..]
-    , (f, mask) <- [(viewScreen, 0), (sendToScreen, shiftMask)]]
-
 
 -- }}}
 
@@ -269,7 +259,7 @@ myConfig = withUrgencyHook NoUrgencyHook $ bluetileConfig
     , focusedBorderColor = "#999"    -- "#ff0000" don't use hex, not <24 bit safe
     , manageHook = manageHook bluetileConfig <+> myManageHook
     , focusFollowsMouse  = True
-    , layoutHook = smartBorders $ bluetileLayoutHook
+    , layoutHook = noBorders $ bluetileLayoutHook
     , startupHook = ewmhDesktopsStartup <+> myStartup
     , logHook = ewmhDesktopsLogHook <+> updatePointer (0.5, 0.5) (1,1) <+> dynamicLogXinerama
     , modMask = modm
@@ -287,9 +277,9 @@ hideStr str = ""
 
 -- Custom PP, configure it as you like. It determines what is being written to the bar.
 myPP = xmobarPP {
-  ppCurrent = xmobarColor "green" "" . wrap "[" "]"
-    , ppTitle   = xmobarColor "green"  "" . shorten 40
-    , ppVisible = wrap "(" ")"
+  ppCurrent = xmobarColor "#afd700" ""
+    , ppTitle   = xmobarColor "#afd700"  "" . shorten 40
+    , ppVisible = xmobarColor "#ff5faf" ""
     , ppLayout = hideStr
     , ppSep = " | "
     , ppUrgent  = xmobarColor "" "#ffcc33"
