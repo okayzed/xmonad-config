@@ -27,6 +27,7 @@ import XMonad.Actions.UpdatePointer
 -- {{{ HOOKS
 import XMonad.Hooks.CurrentWorkspaceOnTop
 import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.DynamicBars
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
@@ -252,6 +253,14 @@ myStartup = do
 -- }}}
 
 -- {{{ CONFIG
+
+barCreator :: DynamicStatusBar
+barCreator (XMonad.S sid) = spawnPipe $ "xmobar --screen " ++ show sid
+
+barDestroyer :: DynamicStatusBarCleanup
+barDestroyer = return ()
+
+
 modm = mod4Mask
 myConfig = withUrgencyHook NoUrgencyHook $ bluetileConfig
   { borderWidth = 2
@@ -260,8 +269,8 @@ myConfig = withUrgencyHook NoUrgencyHook $ bluetileConfig
     , manageHook = manageHook bluetileConfig <+> myManageHook
     , focusFollowsMouse  = True
     , layoutHook = noBorders $ bluetileLayoutHook
-    , startupHook = ewmhDesktopsStartup <+> myStartup
-    , logHook = ewmhDesktopsLogHook <+> updatePointer (0.5, 0.5) (1,1) <+> dynamicLogXinerama
+    , startupHook = ewmhDesktopsStartup <+> myStartup <+> dynStatusBarStartup barCreator barDestroyer
+    , logHook = ewmhDesktopsLogHook <+> updatePointer (0.5, 0.5) (1,1) <+> dynamicLogXinerama <+> multiPP myPP myPP
     , modMask = modm
     , mouseBindings = newMouse
     , workspaces = myTopics }
@@ -277,7 +286,7 @@ hideStr str = ""
 
 -- Custom PP, configure it as you like. It determines what is being written to the bar.
 myPP = xmobarPP {
-  ppCurrent = xmobarColor "#afd700" ""
+  ppCurrent = xmobarColor "#af87d7" ""
     , ppTitle   = xmobarColor "#afd700"  "" . shorten 40
     , ppVisible = xmobarColor "#ff5faf" ""
     , ppLayout = hideStr
