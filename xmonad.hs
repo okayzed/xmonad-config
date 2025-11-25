@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-deprecations #-}
 -- {{{ DESCRIPTION
 -- Info on how to use this setup should go here:
 -- }}}
@@ -90,7 +91,7 @@ import qualified Data.Map as M
 
 -- {{{ LAYOUTS
 
-myTabConfig = defaultTheme { decoHeight = 24 }
+myTabConfig = def { decoHeight = 24 }
 bluetileLayoutHook =
     mkToggle1 NBFULL $
     mkToggle1 REFLECTX $
@@ -145,16 +146,16 @@ skipTopics :: [Topic]
 skipTopics = []
 
 goto :: Topic -> X ()
-goto = switchTopic defaultTopicConfig
+goto = switchTopic def
 
 promptedGoto :: X ()
-promptedGoto = workspacePrompt defaultXPConfig goto
+promptedGoto = workspacePrompt def goto
 
 promptedShift :: X ()
-promptedShift = workspacePrompt defaultXPConfig $ windows . W.shift
+promptedShift = workspacePrompt def $ windows . W.shift
 
 commands :: X [(String, X ())]
-commands = defaultCommands
+commands = def
 -- }}}
 
 -- {{{ WINDOW MANAGE HOOKS
@@ -174,7 +175,7 @@ myAdditionalKeys = [
     ((controlMask , xK_semicolon),    spawn "dmenu_run -b -nb black -nf white")
   , ((controlMask , xK_space),    spawn "/usr/bin/rofi -combi-modi drun,run -show combi -modi combi")
   , ((controlMask .|. shiftMask, xK_semicolon),    spawn "dashdoc")
-  , ((modm              , xK_Return), currentTopicAction defaultTopicConfig)
+  , ((modm              , xK_Return), currentTopicAction def)
 
   -- workspace movement
   , ((modm, xK_Tab), cycleRecentWS [xK_Super_L] xK_Tab xK_grave)
@@ -184,15 +185,15 @@ myAdditionalKeys = [
   , ((modm .|. shiftMask, xK_l), swapTo Prev)
   -- workspace + window prompts
   , ((modm .|. shiftMask, xK_BackSpace), removeWorkspace)
-  , ((modm .|. shiftMask, xK_equal   ), addWorkspacePrompt defaultXPConfig)
-  , ((modm .|. shiftMask, xK_r      ), renameWorkspace defaultXPConfig)
+  , ((modm .|. shiftMask, xK_equal   ), addWorkspacePrompt def)
+  , ((modm .|. shiftMask, xK_r      ), renameWorkspace def)
 
-  , ((modm              , xK_n     ), windowPromptGoto defaultXPConfig)
-  , ((modm .|. shiftMask, xK_n     ), windowPromptBring defaultXPConfig)
+  -- , ((modm              , xK_n     ), windowPromptGoto def)
+  -- , ((modm .|. shiftMask, xK_n     ), windowPromptBring def)
 
   -- append to the todo file
-  , ((controlMask .|. shiftMask , xK_y), appendFilePrompt defaultXPConfig "/home/okay/TODO")
-  , ((controlMask .|. shiftMask , xK_j), appendFilePrompt defaultXPConfig "/home/okay/SJRN")
+  , ((controlMask .|. shiftMask , xK_y), appendFilePrompt def "/home/okay/TODO")
+  , ((controlMask .|. shiftMask , xK_j), appendFilePrompt def "/home/okay/SJRN")
 
   -- brightness
   , ((0                 , xK_F5), spawn "xbacklight -dec 2")
@@ -215,8 +216,12 @@ myAdditionalKeys = [
 
   ]
   ++
-  -- mod-[1..9] ++ [0] %! Switch to workspace N
-  -- mod-shift-[1..9] ++ [0] %! Move client to workspace N
+  -- ctrl-[1..9] ++ [0] %! Switch to workspace N
+  -- ctrl-shift-[1..9] ++ [0] %! Move client to workspace N
+  [((m .|. controlMask, k), windows $ f i)
+      | (i, k) <- zip (myTopics) ([xK_1 .. xK_9] ++ [xK_0])
+      , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
+  ++
   [((m .|. modm, k), windows $ f i)
       | (i, k) <- zip (myTopics) ([xK_1 .. xK_9] ++ [xK_0])
       , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
@@ -244,7 +249,7 @@ myMouse x  = [
   ]
 
 
-newMouse x = M.union (mouseBindings defaultConfig x) (M.fromList (myMouse x))
+newMouse x = M.union (mouseBindings def x) (M.fromList (myMouse x))
 -- }}}
 
 -- {{{ STARTUP
