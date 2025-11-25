@@ -15,7 +15,9 @@ if [[ $1 == "startup" ]]; then
   # killall xfce4-panel
 
 
-  run_if_not autolux --crop "10x500+400+0" --sleep-interval 513 &
+  run_if_not autolux --crop "10x500+800+0" --sleep-interval 513 &
+  killall -9 polybar
+  run_if_not polybar &
 
   export SSH_ASKPASS="/usr/bin/ssh-askpass"
   ssh-add &

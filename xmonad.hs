@@ -1,231 +1,165 @@
--- {{{ DESCRIPTION
--- Info on how to use this setup should go here:
--- }}}
+import Control.Monad (when)
+import Data.Ratio ((%))
+import qualified Data.Map as M
+import qualified XMonad.StackSet as W
 
--- {{{ IMPORTS
-
--- {{{ MISC
-import XMonad hiding ( (|||) )
+import XMonad
 import XMonad.Config.Bluetile
-import XMonad.Hooks.FadeInactive
--- }}}
 
-
--- {{{ ACTIONS
-import XMonad.Actions.CycleRecentWS
-import XMonad.Actions.DwmPromote
-import XMonad.Actions.DynamicWorkspaces
-import XMonad.Actions.FlexibleManipulate as Flex
-import XMonad.Actions.TopicSpace
-import XMonad.Actions.Commands
+-- actions
+import XMonad.Actions.OnScreen
+import XMonad.Actions.CycleRecentWS (cycleRecentWS)
+import XMonad.Actions.DwmPromote (dwmpromote)
 import XMonad.Actions.PhysicalScreens
-import XMonad.Actions.SwapWorkspaces
-import XMonad.Actions.UpdatePointer
--- }}}
+  ( PhysicalScreen
+  , ScreenComparator
+  , getScreen
+  , horizontalScreenOrderer
+  , sendToScreen
+  , viewScreen
+  )
+import XMonad.Actions.Warp (warpToScreen)
+import XMonad.Actions.WorkspaceNames(workspaceNamesEwmh)
 
-
--- {{{ HOOKS
-import XMonad.Hooks.CurrentWorkspaceOnTop
-import XMonad.Hooks.DynamicLog
-import XMonad.Hooks.DynamicBars
+-- ewmh / hooks 
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
-import XMonad.Hooks.Minimize
-import XMonad.Hooks.PositionStoreHooks
-import XMonad.Hooks.Script
-import XMonad.Hooks.WorkspaceByPos
+import XMonad.Hooks.Rescreen (addAfterRescreenHook)
 import XMonad.Hooks.UrgencyHook
--- }}}
 
--- {{{ LAYOUTS
-import XMonad.Layout.BorderResize
+-- layouts
 import XMonad.Layout.BoringWindows
-import XMonad.Layout.Combo
-import XMonad.Layout.DraggingVisualizer
 import XMonad.Layout.DecorationMadness
 import XMonad.Layout.Grid
-import XMonad.Layout.LayoutCombinators
-import XMonad.Layout.Maximize
+import XMonad.Layout.LayoutCombinators ((|||))
 import XMonad.Layout.Minimize
 import XMonad.Layout.MouseResizableTile
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.Named
+import XMonad.Layout.Renamed
 import XMonad.Layout.NoBorders
-import XMonad.Layout.NoFrillsDecoration
+import XMonad.Layout.BorderResize
 import XMonad.Layout.PositionStoreFloat
 import XMonad.Layout.Reflect
-import XMonad.Layout.SimpleFloat
-import XMonad.Layout.SubLayouts
-import XMonad.Layout.Tabbed
 import XMonad.Layout.TwoPane
-import XMonad.Layout.WindowSwitcherDecoration
-import XMonad.Layout.WindowNavigation
 
-import XMonad.Layout.Monitor
-
--- }}}
-
--- {{{ PROMPTS
+-- prompts
 import XMonad.Prompt
 import XMonad.Prompt.AppendFile
-import XMonad.Prompt.Shell
-import XMonad.Prompt.Window
 import XMonad.Prompt.Workspace
-import XMonad.Prompt.XMonad
--- }}}
 
--- {{{ UTILS
-import XMonad.Util.EZConfig
-import XMonad.Util.Run
-import XMonad.Util.Replace
-import XMonad.Util.Themes
+-- utils
+import XMonad.Util.EZConfig (additionalKeys)
+import XMonad.Util.Run (spawnPipe)
 
--- }}}
---
-import qualified XMonad.StackSet as W
-import qualified Data.Map as M
--- }}}
+--------------------------------------------------------------------------------
+-- Workspaces
 
--- {{{ LAYOUTS
+leftPinned, rightPinned, flexTopics :: [(WorkspaceId, KeySym)]
+leftPinned =
+  zip ["1","2","3","4","5","6","7"] [xK_1..xK_7]
 
-myTabConfig = defaultTheme { decoHeight = 24 }
-bluetileLayoutHook =
-    mkToggle1 NBFULL $
-    mkToggle1 REFLECTX $
-    mkToggle1 REFLECTY $
-    mkToggle1 NOBORDERS $
-    avoidStrutsOn [U] $
-    minimize $
-    boringWindows $ lessBorders Screen (
-      named "Fullscreen" fullscreen |||
-      named "Tiled" tiled2 |||
-      named "TwoPane" subbed |||
-      named "Floating" floating |||
-      named "Grid" grid
-    )
-  where
-    floating = floatingDeco $ borderResize $ positionStoreFloat
-    fullscreen = Full
-    tiled1 = mouseResizableTileMirrored {
-      draggerType = myDragger
-    }
-    tiled2 = mouseResizableTile {
-      draggerType = myDragger
-    }
-    subbed = (TwoPane 0.03 0.5)
-    grid = Grid
-    floatingDeco l = floatSimpleSimple
-
-myDragger = BordersDragger
--- }}}
-
--- {{{TOPICS
---
--- The list of all topics/workspaces of your xmonad configuration.
--- The order is important, new topics must be inserted
--- at the end of the list if you want hot-restarting
--- to work.
-myTopics :: [Topic]
-myTopics =
-  [ "1" -- the first one
-  , "2"
-  , "3"
-  , "4"
-  , "5"
-  , "6"
-  , "7"
-  , "8"
-  , "9"
-  , "0"
+rightPinned =
+  [ ("8", xK_8), ("9", xK_9), ("0", xK_0)
+  , ("=", xK_backslash)
   ]
 
-skipTopics :: [Topic]
-skipTopics = []
-
-goto :: Topic -> X ()
-goto = switchTopic defaultTopicConfig
-
-promptedGoto :: X ()
-promptedGoto = workspacePrompt defaultXPConfig goto
-
-promptedShift :: X ()
-promptedShift = workspacePrompt defaultXPConfig $ windows . W.shift
-
-commands :: X [(String, X ())]
-commands = defaultCommands
--- }}}
-
--- {{{ WINDOW MANAGE HOOKS
-myManageHook = composeAll [
-  resource =? "desktop_window" --> doIgnore
-  , resource =? "Desktop" --> doFullFloat
-  , className =? "synapse" --> doIgnore
-  , className =? "Docky" --> doIgnore
-  , className =? "Workrave" --> doIgnore
-  , className =? "onboard" --> doIgnore
-  , className =? "xfce4-panel" --> doIgnore
+flexTopics =
+  [ ("u", xK_u), ("i", xK_i), ("o", xK_o), ("p", xK_p)
+  , ("z", xK_z), ("x", xK_x), ("c", xK_c), ("v", xK_v)
   ]
--- }}}
 
--- {{{ KEYBINDINGS
-myAdditionalKeys = [
-    ((controlMask , xK_semicolon),    spawn "dmenu_run -b -nb black -nf white")
-  , ((controlMask , xK_space),    spawn "/usr/bin/rofi -combi-modi drun,run -show combi -modi combi")
-  , ((controlMask .|. shiftMask, xK_semicolon),    spawn "dashdoc")
-  , ((modm              , xK_Return), currentTopicAction defaultTopicConfig)
+myWorkspaces :: [WorkspaceId]
+myWorkspaces = map fst leftPinned ++ map fst rightPinned ++ map fst flexTopics
 
-  -- workspace movement
-  , ((modm, xK_Tab), cycleRecentWS [xK_Super_L] xK_Tab xK_grave)
-  , ((modm, xK_space), dwmpromote)
+--------------------------------------------------------------------------------
+-- Screens
 
-  , ((modm .|. shiftMask, xK_h), swapTo Next)
-  , ((modm .|. shiftMask, xK_l), swapTo Prev)
-  -- workspace + window prompts
-  , ((modm .|. shiftMask, xK_BackSpace), removeWorkspace)
-  , ((modm .|. shiftMask, xK_equal   ), addWorkspacePrompt defaultXPConfig)
-  , ((modm .|. shiftMask, xK_r      ), renameWorkspace defaultXPConfig)
+modm :: KeyMask
+modm = mod1Mask  -- Alt
 
-  , ((modm              , xK_n     ), windowPromptGoto defaultXPConfig)
-  , ((modm .|. shiftMask, xK_n     ), windowPromptBring defaultXPConfig)
+screenOrder :: ScreenComparator
+screenOrder = horizontalScreenOrderer
 
-  -- append to the todo file
-  , ((controlMask .|. shiftMask , xK_y), appendFilePrompt defaultXPConfig "/home/okay/TODO")
-  , ((controlMask .|. shiftMask , xK_j), appendFilePrompt defaultXPConfig "/home/okay/SJRN")
+leftScreen, rightScreen :: PhysicalScreen
+leftScreen  = 0
+rightScreen = 1
 
-  -- brightness
-  , ((0                 , xK_F5), spawn "xbacklight -dec 2")
-  , ((0                 , xK_F6), spawn "xbacklight -inc 2")
-  -- switching to different layouts
-  , ((modm              , xK_a), sendMessage $ JumpToLayout "Floating")
-  , ((modm              , xK_s), sendMessage $ JumpToLayout "TwoPane")
-  , ((modm              , xK_d), sendMessage $ JumpToLayout "Tiled")
-  , ((modm              , xK_f), sendMessage $ JumpToLayout "Fullscreen")
-  , ((modm              , xK_g), sendMessage $ JumpToLayout "Grid")
-  , ((modm              , xK_r), sendMessage NextLayout)
-  , ((modm .|. shiftMask, xK_b), sendMessage $ ToggleStrut D)
-  , ((modm .|. shiftMask, xK_u), sendMessage $ ToggleStrut U)
+defaultRightWorkspace :: WorkspaceId
+defaultRightWorkspace = "="
 
-  -- running modifiers on layouts
-  , ((modm .|. controlMask, xK_space ), sendMessage $ Toggle NBFULL)
-  , ((modm .|. controlMask, xK_x ), sendMessage $ Toggle REFLECTX)
-  , ((modm .|. controlMask, xK_y ), sendMessage $ Toggle REFLECTY)
-  , ((modm .|. controlMask, xK_b ), sendMessage $ Toggle NOBORDERS)
+isMultiScreen :: X Bool
+isMultiScreen = (>= 2) . length . W.screens <$> gets windowset
 
+-- Change *a specific physical screen's* workspace, without moving focus.
+viewOnPhysical :: PhysicalScreen -> WorkspaceId -> X ()
+viewOnPhysical ps ws = do
+  msid <- getScreen screenOrder ps
+  case msid of
+    Nothing  -> windows (W.greedyView ws)      -- fallback
+    Just sid -> windows (viewOnScreen sid ws)  -- update that screen only
+
+-- For pinned workspaces: update a specific screen, but keep keyboard focus where it is.
+gotoPinned :: PhysicalScreen -> WorkspaceId -> X ()
+gotoPinned ps ws = do
+  multi <- isMultiScreen
+  if multi then viewOnPhysical ps ws else windows (W.greedyView ws)
+
+-- Warp only when explicitly moving between monitors.
+focusAndWarp :: PhysicalScreen -> X ()
+focusAndWarp ps = do
+  multi <- isMultiScreen
+  when multi $ do
+    viewScreen screenOrder ps
+    msid <- getScreen screenOrder ps
+    case msid of
+      Nothing  -> pure ()
+      Just sid -> warpToScreen sid (1%2) (1%2)
+
+ensureRightMonitorDefault :: X ()
+ensureRightMonitorDefault = do
+  multi <- isMultiScreen
+  when multi $ viewOnPhysical rightScreen defaultRightWorkspace
+
+--------------------------------------------------------------------------------
+-- Layout
+
+myLayoutHook = renamed [CutWordsLeft 1] $
+  mkToggle1 NBFULL $
+  mkToggle1 REFLECTX $
+  mkToggle1 REFLECTY $
+  mkToggle1 NOBORDERS $
+  avoidStrutsOn [U] $
+  boringWindows $
+  minimize $
+  lessBorders Screen $
+    named "Fullscreen" Full |||
+    named "Tiled" tiled |||
+    named "TwoPane" (TwoPane 0.03 0.5) |||
+    named "Grid" Grid |||
+    named "Floating" floating
+ where
+  tiled = mouseResizableTile { draggerType = BordersDragger }
+  floating = floatingDeco $ borderResize $ positionStoreFloat
+  floatingDeco _l = floatSimpleSimple
+
+--------------------------------------------------------------------------------
+-- Manage hook
+
+myManageHook :: ManageHook
+myManageHook = composeAll
+  [ resource =? "desktop_window" --> doIgnore
+  , resource =? "Desktop"        --> doFullFloat
+  , className =? "Workrave"      --> doIgnore
+  , className =? "onboard"       --> doIgnore
+  , className =? "xfce4-panel"   --> doIgnore
   ]
-  ++
-  -- mod-[1..9] ++ [0] %! Switch to workspace N
-  -- mod-shift-[1..9] ++ [0] %! Move client to workspace N
-  [((m .|. modm, k), windows $ f i)
-      | (i, k) <- zip (myTopics) ([xK_1 .. xK_9] ++ [xK_0])
-      , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 
-
--- }}}
-
--- {{{ MOUSE BINDINGS
+--------------------------------------------------------------------------------
+-- Mousebindings
 myMouseMoveWindow :: Window -> X ()
 myMouseMoveWindow w = whenX (isClient w) $ withDisplay $ \d -> do
     io $ raiseWindow d w
@@ -237,68 +171,112 @@ myMouseMoveWindow w = whenX (isClient w) $ withDisplay $ \d -> do
                                              (fromIntegral (fromIntegral (wa_y wa) + (ey - oy))))
       (focus w)
 
-myMouse x  = [
-  -- optional. but nicer than normal mouse move and size
-  ((modm, button1), (\w -> focus w >> myMouseMoveWindow w))
+myMouse x  =
+  [ ((modm, button1), (\w -> focus w >> myMouseMoveWindow w))
   , ((modm, button3), (\w -> focus w >> mouseResizeWindow w))
   ]
 
+newMouse x = M.union (mouseBindings def x) (M.fromList (myMouse x))
+--------------------------------------------------------------------------------
+-- Keybindings
 
-newMouse x = M.union (mouseBindings defaultConfig x) (M.fromList (myMouse x))
--- }}}
+myKeys :: [((KeyMask, KeySym), X ())]
+myKeys =
+  [ ((controlMask, xK_semicolon), spawn "dmenu_run -b -nb black -nf white")
+  , ((controlMask, xK_space),     spawn "/usr/bin/rofi -combi-modi drun,run -show combi -modi combi")
 
--- {{{ STARTUP
-myStartup = do
-  spawn "bash ~/.xinitrc &"
--- }}}
+  , ((modm, xK_space), dwmpromote)
 
--- {{{ CONFIG
+  , ((modm, xK_a), sendMessage $ JumpToLayout "Floating")
+  , ((modm, xK_s), sendMessage $ JumpToLayout "Tiled")
+  , ((modm, xK_d), sendMessage $ JumpToLayout "TwoPane")
+  , ((modm, xK_f), sendMessage $ JumpToLayout "Fullscreen")
+  , ((modm, xK_g), sendMessage $ JumpToLayout "Grid")
 
-barCreator :: DynamicStatusBar
-barCreator (XMonad.S sid) = spawnPipe $ "xmobar --screen " ++ show sid
+  -- layout modifiers
+  , ((modm, xK_b), sendMessage $ ToggleStruts)
+  , ((modm .|. controlMask, xK_space), sendMessage $ Toggle NBFULL)
+  , ((modm .|. controlMask, xK_x),     sendMessage $ Toggle REFLECTX)
+  , ((modm .|. controlMask, xK_y),     sendMessage $ Toggle REFLECTY)
+  , ((modm .|. controlMask, xK_b),     sendMessage $ Toggle NOBORDERS)
 
-barDestroyer :: DynamicStatusBarCleanup
-barDestroyer = return ()
+  , ((modm, xK_Delete), kill)
 
+  -- rebind shrink/expand because they used to be h/l
+  , ((modm .|. shiftMask, xK_comma), sendMessage Shrink)
+  , ((modm .|. shiftMask, xK_period), sendMessage Expand)
 
-modm = mod4Mask
-myConfig = withUrgencyHook NoUrgencyHook $ bluetileConfig
-  { borderWidth = 2
-    , normalBorderColor  = "#000" -- "#dddddd"
-    , focusedBorderColor = "#999"    -- "#ff0000" don't use hex, not <24 bit safe
-    , manageHook = manageHook bluetileConfig <+> myManageHook
-    , focusFollowsMouse  = True
-    , layoutHook = noBorders $ bluetileLayoutHook
-    , startupHook = ewmhDesktopsStartup <+> myStartup <+> dynStatusBarStartup barCreator barDestroyer
-    , logHook = ewmhDesktopsLogHook <+> updatePointer (0.5, 0.5) (1,1) <+> dynamicLogXinerama <+> multiPP myPP myPP
-    , modMask = modm
-    , mouseBindings = newMouse
-    , workspaces = myTopics }
-  `additionalKeys` myAdditionalKeys
-  -- }}}
+  -- warp-only monitor focus
+  , ((modm, xK_h), focusAndWarp leftScreen)
+  , ((modm, xK_l), focusAndWarp rightScreen)
 
--- {{{ MAIN
--- Command to launch the bar.
-myBar = "xmobar"
+  -- move focused window to a monitor
+  , ((modm .|. shiftMask, xK_h), sendToScreen screenOrder leftScreen)
+  , ((modm .|. shiftMask, xK_l), sendToScreen screenOrder rightScreen)
 
-hideStr :: String -> String
-hideStr str = ""
+  -- brightness
+  , ((0, xK_F5), spawn "xbacklight -dec 2")
+  , ((0, xK_F6), spawn "xbacklight -inc 2")
+  ]
+  ++
+  -- left pinned: mod/ctrl = view on left screen; +shift = move window
+  [ ((m, k), gotoPinned leftScreen ws)
+    | (ws, k) <- leftPinned
+    , m <- [modm, controlMask]
+  ]
+  ++
+  [ ((m .|. shiftMask, k), windows (W.shift ws))
+    | (ws, k) <- leftPinned
+    , m <- [modm, controlMask]
+  ]
+  ++
+  -- right pinned
+  [ ((m, k), gotoPinned rightScreen ws)
+    | (ws, k) <- rightPinned
+    , m <- [modm, controlMask]
+  ]
+  ++
+  [ ((m .|. shiftMask, k), windows (W.shift ws))
+    | (ws, k) <- rightPinned
+    , m <- [modm, controlMask]
+  ]
+  ++
+  -- flex: mod = view on current; mod+shift = move window
+  [ ((modm, k), windows (W.greedyView ws)) | (ws, k) <- flexTopics ]
+  ++
+  [ ((modm .|. shiftMask, k), windows (W.shift ws)) | (ws, k) <- flexTopics ]
 
--- Custom PP, configure it as you like. It determines what is being written to the bar.
-myPP = xmobarPP {
-  ppCurrent = xmobarColor "#af87d7" ""
-    , ppTitle   = xmobarColor "#afd700"  "" . shorten 40
-    , ppVisible = xmobarColor "#ff5faf" ""
-    , ppLayout = hideStr
-    , ppSep = " | "
-    , ppUrgent  = xmobarColor "" "#ffcc33"
-}
+--------------------------------------------------------------------------------
+-- Config
 
--- Key binding to toggle the gap for the bar.
-toggleStrutsKey XConfig {XMonad.modMask = modMask} = (modMask, xK_b)
+myStartup :: X ()
+myStartup = spawn "bash ~/.xinitrc &"
 
+main :: IO ()
+main = xmonad finalConfig
 
-main = xmonad =<< statusBar myBar myPP toggleStrutsKey myConfig
--- }}}
+finalConfig =
+    addRescreen
+  $ addUrgency
+  $ addEwmh
+  $ workspaceNamesEwmh
+  $ baseConfig
+  where
+    addRescreen = addAfterRescreenHook ensureRightMonitorDefault
+    addUrgency  = withUrgencyHook NoUrgencyHook
+    addEwmh     = ewmh
 
--- vim: foldmethod=marker
+baseConfig =
+  (bluetileConfig
+     { borderWidth        = 2
+     , normalBorderColor  = "#000"
+     , focusedBorderColor = "#999"
+     , manageHook         = manageHook bluetileConfig <+> myManageHook
+     , focusFollowsMouse  = True
+     , layoutHook         = noBorders myLayoutHook
+     , startupHook        = myStartup <+> ensureRightMonitorDefault
+     , modMask            = modm
+     , mouseBindings      = newMouse
+     , workspaces         = myWorkspaces
+     })
+     `additionalKeys` myKeys

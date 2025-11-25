@@ -7,7 +7,8 @@ this is my xmonad+xfce4 config.
 ```
 apt install xmobar xmonad rofi xfce4
 git clone https://github.com/okayzed/xmonad-config ~/.xmonad
-ln -s ~/.xmonad/xmobarrc ~/.xmobarrc
+mkdir -p ~/.config/polybar
+ln -s ~/.xmonad/polybar.ini ~/.config/polybar/config.ini
 ln -s ~/.xmonad/xmodmap ~/.Xmodmap
 
 ```
@@ -19,20 +20,21 @@ if xfce4 desktop keeps taking over, uninstall xfce4-desktop package
 ## keybindings
 
 ```
-super+[0+9]: switch to desktop
-shift+super+[0+9]: move window to desktop
-super+[j,k]: switch window
-shift+super+[j,k]: move window
-super+[h,l]: resize window
-super+[a,s,d,f,g]: switch between layouts: floating, twopane, tiled, fullscreen, grid
+mod+[0+9]: switch to desktop
+shift+mod+[0+9]: move window to desktop
+mod+[j,k]: switch window
+shift+mod+[j,k]: move window
+mod+[h,l]: move pointer to monitor
+shift+mod+[h,l]: move window to monitor
+mod+[a,s,d,f,g]: switch between layouts: floating, twopane, tiled, fullscreen, grid
 ctrl+space: bring up rofi command launcher
-super+semi-colon: dmenu command launcher
-super+m: minimize window
-shift+super+min: unminimize window
-super+b: hide/unhide status bars
-super+q: restart xmonad
-shift+super+q: exit xmonad
-super+t: place window into tiling
-super+mouse drag: move window
-super+right click drag: resize window
+mod+semi-colon: dmenu command launcher
+mod+m: minimize window
+shift+mod+min: unminimize window
+mod+b: hide/unhide status bars
+mod+q: restart xmonad
+shift+mod+q: exit xmonad
+mod+t: place window into tiling
+mod+mouse drag: move window
+mod+right click drag: resize window
 ```
