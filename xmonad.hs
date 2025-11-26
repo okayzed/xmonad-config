@@ -6,6 +6,7 @@
 -- }}}
 
 -- {{{ IMPORTS
+import Control.Monad (when)
 
 -- {{{ MISC
 import XMonad hiding ((|||))
@@ -149,6 +150,9 @@ commands :: X [(String, X ())]
 commands = def
 
 -- Screen helpers (physical order: left-to-right)
+isMultiScreen :: X Bool
+isMultiScreen = (>= 2) . length . W.screens <$> gets windowset
+
 screenOrder :: ScreenComparator
 screenOrder = horizontalScreenOrderer
 
@@ -161,18 +165,24 @@ defaultRightWorkspace = "\\"
 
 ensureRightMonitorDefault :: X ()
 ensureRightMonitorDefault = do
-  msid <- getScreen screenOrder rightScreen
-  case msid of
-    Nothing  -> pure ()              -- no second screen
-    Just sid -> windows (viewOnScreen sid defaultRightWorkspace)
+  multi <- isMultiScreen
+  when multi $ do
+    msid <- getScreen screenOrder rightScreen
+    case msid of
+      Nothing  -> pure ()
+      Just sid -> windows (viewOnScreen sid defaultRightWorkspace)
 
 -- Pinned topics update a *specific* monitor without changing keyboard focus.
 gotoPinned :: PhysicalScreen -> WorkspaceId -> X ()
 gotoPinned ps ws = do
-  msid <- getScreen screenOrder ps
-  case msid of
-    Nothing  -> pure ()
-    Just sid -> windows (viewOnScreen sid ws)
+  multi <- isMultiScreen
+  if not multi
+    then goto ws                           -- single monitor: behave normally
+    else do
+      msid <- getScreen screenOrder ps
+      case msid of
+        Nothing  -> goto ws                -- safety fallback
+        Just sid -> windows (viewOnScreen sid ws)     -- multi monitor: change that screen only
 
 -- Mod-h / Mod-l: focus monitor AND warp pointer there (only here do we move the mouse).
 warpToPhysical :: PhysicalScreen -> X ()
@@ -183,7 +193,15 @@ warpToPhysical ps = do
     Just sid -> warpToScreen sid (1%2) (1%2)
 
 focusAndWarp :: PhysicalScreen -> X ()
-focusAndWarp ps = viewScreen screenOrder ps >> warpToPhysical ps
+focusAndWarp ps = do
+  multi <- isMultiScreen
+  when multi $ viewScreen screenOrder ps >> warpToPhysical ps
+
+sendToPhysicalWhenMulti :: PhysicalScreen -> X ()
+sendToPhysicalWhenMulti ps = do
+  multi <- isMultiScreen
+  when multi $ sendToScreen screenOrder ps
+
 -- }}}
 
 -- {{{ WINDOW MANAGE HOOKS
@@ -200,7 +218,7 @@ myManageHook = composeAll
 
 -- {{{ KEYBINDINGS
 
-modm = mod4Mask
+modm = mod1Mask
 
 -- Topic/key groups
 leftPinned :: [(WorkspaceId, KeySym)]
@@ -255,14 +273,15 @@ myAdditionalKeys =
   , ((0, xK_F6), spawn "xbacklight -inc 2")
 
   -- switching to different layouts
-  -- NOTE: removed mod-a and mod-s per request; leaving d and f.
   , ((modm, xK_d), sendMessage $ JumpToLayout "Tiled")
   , ((modm, xK_f), sendMessage $ JumpToLayout "Fullscreen")
   , ((modm, xK_g), sendMessage $ JumpToLayout "Grid")
   , ((modm, xK_r), sendMessage NextLayout)
-  , ((modm .|. shiftMask, xK_w), kill)
   , ((modm .|. shiftMask, xK_b), sendMessage $ ToggleStrut D)
   , ((modm .|. shiftMask, xK_u), sendMessage $ ToggleStrut U)
+  -- kill windows
+  , ((modm, xK_Delete), kill)
+  , ((modm .|. shiftMask, xK_w), kill)
 
   -- running modifiers on layouts
   , ((modm .|. controlMask, xK_space), sendMessage $ Toggle NBFULL)
@@ -273,6 +292,9 @@ myAdditionalKeys =
   -- monitor mouse movement (replaces q/w/e idea): mod-h/l
   , ((modm, xK_h), focusAndWarp leftScreen)
   , ((modm, xK_l), focusAndWarp rightScreen)
+  , ((modm .|. shiftMask, xK_h), sendToPhysicalWhenMulti leftScreen)
+  , ((modm .|. shiftMask, xK_l), sendToPhysicalWhenMulti rightScreen)
+
 
   -- move windows between monitors: shift-mod-h/l
   , ((modm .|. shiftMask, xK_h), sendToScreen screenOrder leftScreen)
@@ -358,8 +380,6 @@ myConfig =
       <+> myStartup
       <+> dynStatusBarStartup barCreator barDestroyer 
       <+> ensureRightMonitorDefault
-      -- IMPORTANT CHANGE:
-      -- Removed updatePointer so switching topics/workspaces does NOT move the mouse.
     , logHook            = ewmhDesktopsLogHook <+> dynamicLogXinerama <+> multiPP myPP myPP
 
     , modMask            = modm
