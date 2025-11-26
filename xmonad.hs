@@ -24,6 +24,8 @@ import XMonad.Actions.PhysicalScreens
 import XMonad.Actions.SwapWorkspaces
 import XMonad.Actions.Warp
 import XMonad.Actions.OnScreen
+-- NOTE: removed UpdatePointer usage on purpose
+-- import XMonad.Actions.UpdatePointer
 -- }}}
 
 -- {{{ HOOKS
@@ -38,6 +40,7 @@ import XMonad.Hooks.PositionStoreHooks
 import XMonad.Hooks.Script
 import XMonad.Hooks.WorkspaceByPos
 import XMonad.Hooks.UrgencyHook
+import XMonad.Hooks.Rescreen
 -- }}}
 
 -- {{{ LAYOUTS
@@ -153,11 +156,22 @@ leftScreen, rightScreen :: PhysicalScreen
 leftScreen  = 0
 rightScreen = 1
 
+defaultRightWorkspace :: WorkspaceId
+defaultRightWorkspace = "\\"
+
+ensureRightMonitorDefault :: X ()
+ensureRightMonitorDefault = do
+  msid <- getScreen screenOrder rightScreen
+  case msid of
+    Nothing  -> pure ()              -- no second screen
+    Just sid -> windows (viewOnScreen sid defaultRightWorkspace)
+
 -- Pinned topics update a *specific* monitor without changing keyboard focus.
 gotoPinned :: PhysicalScreen -> WorkspaceId -> X ()
 gotoPinned ps ws = do
   msid <- getScreen screenOrder ps
   case msid of
+    Nothing  -> pure ()
     Just sid -> windows (viewOnScreen sid ws)
 
 -- Mod-h / Mod-l: focus monitor AND warp pointer there (only here do we move the mouse).
@@ -246,6 +260,7 @@ myAdditionalKeys =
   , ((modm, xK_f), sendMessage $ JumpToLayout "Fullscreen")
   , ((modm, xK_g), sendMessage $ JumpToLayout "Grid")
   , ((modm, xK_r), sendMessage NextLayout)
+  , ((modm .|. shiftMask, xK_w), kill)
   , ((modm .|. shiftMask, xK_b), sendMessage $ ToggleStrut D)
   , ((modm .|. shiftMask, xK_u), sendMessage $ ToggleStrut U)
 
@@ -331,6 +346,7 @@ barDestroyer :: DynamicStatusBarCleanup
 barDestroyer = return ()
 
 myConfig =
+  addAfterRescreenHook ensureRightMonitorDefault $
   withUrgencyHook NoUrgencyHook $ bluetileConfig
     { borderWidth        = 2
     , normalBorderColor  = "#000"
@@ -338,8 +354,12 @@ myConfig =
     , manageHook         = manageHook bluetileConfig <+> myManageHook
     , focusFollowsMouse  = True
     , layoutHook         = noBorders bluetileLayoutHook
-    , startupHook        = ewmhDesktopsStartup <+> myStartup <+> dynStatusBarStartup barCreator barDestroyer
-
+    , startupHook        = ewmhDesktopsStartup 
+      <+> myStartup
+      <+> dynStatusBarStartup barCreator barDestroyer 
+      <+> ensureRightMonitorDefault
+      -- IMPORTANT CHANGE:
+      -- Removed updatePointer so switching topics/workspaces does NOT move the mouse.
     , logHook            = ewmhDesktopsLogHook <+> dynamicLogXinerama <+> multiPP myPP myPP
 
     , modMask            = modm
