@@ -66,7 +66,7 @@ leftPinned =
 
 rightPinned =
   [ ("8", xK_8), ("9", xK_9), ("0", xK_0)
-  , ("-", xK_minus), ("=", xK_equal), ("\\", xK_backslash)
+  , ("\\", xK_backslash)
   ]
 
 flexTopics =
@@ -155,8 +155,6 @@ myManageHook :: ManageHook
 myManageHook = composeAll
   [ resource =? "desktop_window" --> doIgnore
   , resource =? "Desktop"        --> doFullFloat
-  , className =? "synapse"       --> doIgnore
-  , className =? "Docky"         --> doIgnore
   , className =? "Workrave"      --> doIgnore
   , className =? "onboard"       --> doIgnore
   , className =? "xfce4-panel"   --> doIgnore
@@ -195,15 +193,14 @@ myKeys :: [((KeyMask, KeySym), X ())]
 myKeys =
   [ ((controlMask, xK_semicolon), spawn "dmenu_run -b -nb black -nf white")
   , ((controlMask, xK_space),     spawn "/usr/bin/rofi -combi-modi drun,run -show combi -modi combi")
-  , ((controlMask .|. shiftMask, xK_semicolon), spawn "dashdoc")
 
-  , ((modm, xK_Tab),   cycleRecentWS [xK_Super_L] xK_Tab xK_grave)
   , ((modm, xK_space), dwmpromote)
 
-  , ((modm, xK_g), sendMessage $ JumpToLayout "Grid")
+  , ((modm, xK_a), sendMessage $ JumpToLayout "Floating")
+  , ((modm, xK_s), sendMessage $ JumpToLayout "Tiled")
+  , ((modm, xK_d), sendMessage $ JumpToLayout "TwoPane")
   , ((modm, xK_f), sendMessage $ JumpToLayout "Fullscreen")
-  , ((modm, xK_d), sendMessage $ JumpToLayout "Tiled")
-  , ((modm, xK_r), sendMessage NextLayout)
+  , ((modm, xK_g), sendMessage $ JumpToLayout "Grid")
 
   , ((modm .|. controlMask, xK_space), sendMessage $ Toggle NBFULL)
   , ((modm .|. controlMask, xK_x),     sendMessage $ Toggle REFLECTX)
@@ -211,11 +208,10 @@ myKeys =
   , ((modm .|. controlMask, xK_b),     sendMessage $ Toggle NOBORDERS)
 
   , ((modm, xK_Delete), kill)
-  , ((modm .|. shiftMask, xK_w), kill)
 
-  -- prompts
-  , ((modm, xK_slash), promptedGoto)
-  , ((modm .|. shiftMask, xK_slash), promptedShift)
+  -- rebind w/e to Expand Shrink
+  , ((modm, xK_w), sendMessage Shrink)
+  , ((modm, xK_e), sendMessage Expand)
 
   -- warp-only monitor focus
   , ((modm, xK_h), focusAndWarp leftScreen)
