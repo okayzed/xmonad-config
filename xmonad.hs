@@ -42,6 +42,7 @@ import XMonad.Layout.MouseResizableTile
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.Named
+import XMonad.Layout.Renamed
 import XMonad.Layout.NoBorders
 import XMonad.Layout.BorderResize
 import XMonad.Layout.PositionStoreFloat
@@ -129,14 +130,14 @@ ensureRightMonitorDefault = do
 --------------------------------------------------------------------------------
 -- Layout
 
-myLayoutHook =
+myLayoutHook = renamed [CutWordsLeft 1] $
   mkToggle1 NBFULL $
   mkToggle1 REFLECTX $
   mkToggle1 REFLECTY $
   mkToggle1 NOBORDERS $
   avoidStrutsOn [U] $
-  minimize $
   boringWindows $
+  minimize $
   lessBorders Screen $
     named "Fullscreen" Full |||
     named "Tiled" tiled |||
@@ -268,12 +269,12 @@ barDestroyer = pure ()
 
 myPP :: PP
 myPP = xmobarPP
-  { ppCurrent = xmobarColor "#af87d7" ""
-  , ppTitle   = xmobarColor "#afd700"  "" . shorten 40
-  , ppVisible = xmobarColor "#ff5faf" ""
-  , ppLayout  = const ""
+  { ppCurrent = xmobarColor "#bd93f9" ""                -- Purple
+  , ppTitle   = xmobarColor "#f1fa8c" "" . shorten 40   -- Yellow
+  , ppVisible = xmobarColor "#ff79c6" ""                -- Pink
+  , ppLayout  = xmobarColor "#8be9fd" ""                -- Cyan
   , ppSep     = " | "
-  , ppUrgent  = xmobarColor "" "#ffcc33"
+  , ppUrgent  = xmobarColor "" "#ff5555"                -- Red background
   }
 
 myStartup :: X ()
